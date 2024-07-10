@@ -8,13 +8,16 @@
     <style>
         /* CSS Custom Properties for easy theming and accessibility */
         :root {
-    --tg-theme-bg-color: var(--tg-theme-bg-color, #ffffff);
-    --tg-theme-text-color: var(--tg-theme-text-color, #000000);
-    --tg-theme-hint-color: var(--tg-theme-hint-color, #999999);
-    --tg-theme-link-color: var(--tg-theme-link-color, #2481cc);
-    --tg-theme-button-color: var(--tg-theme-button-color, #5288c1);
-    --tg-theme-button-text-color: var(--tg-theme-button-text-color, #ffffff);
-}
+            --primary-color: #ffffff;
+            --secondary-color: #4CAF50;
+            --text-color: #333333;
+            --card-color: #ffffff;
+            --incorrect-color: #F44336;
+            --background-gradient: linear-gradient(to right, var(--primary-color), #E8F5E9);
+            --timeline-gradient: linear-gradient(135deg, #E8F5E9, #81C784);
+            --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --button-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
 
         /* Global Reset and Base Styles */
         * {
@@ -24,8 +27,8 @@
         }
 
         body {
-    background-color: var(--tg-theme-bg-color);
-    color: var(--tg-theme-text-color);
+            background: var(--background-gradient);
+            color: var(--text-color);
             font-family: 'Roboto', Arial, sans-serif;
             display: flex;
             flex-direction: column;
@@ -232,8 +235,8 @@
 
         /* Improved Draw Card Button Styles */
         #draw-card {
-    background-color: var(--tg-theme-button-color);
-    color: var(--tg-theme-button-text-color);
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
             border: none;
             padding: 15px 30px;
             font-size: 1.2rem;
@@ -472,27 +475,12 @@
             <button id="restart-game">Restart Game</button>
         </div>
     </div>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-let tg = window.Telegram.WebApp;
-
-// Initialize the Web App
-tg.expand(); // Expand to full height
-tg.ready(); // Notify Telegram that the Web App is ready
-
-//  existing game variables and functions start here
-let score = 0;
-let lives = 3;
-let progress = 0;
-const totalCards = 10;
-let availableEvents = [];
-let mainButton = tg.MainButton;
-tg.BackButton.onClick(restartGame);
-
-
-mainButton.text = "Draw Card";
-mainButton.onClick(drawCard);
-mainButton.show();
+    <script>// Game state variables
+        let score = 0;
+        let lives = 3;
+        let progress = 0;
+        const totalCards = 10;
+        let availableEvents = [];
 
         // DOM Elements
         const timeline = document.getElementById('timeline');
@@ -571,52 +559,7 @@ mainButton.show();
             drawCardButton.disabled = true;
             currentCard.draggable = true;
             currentCard.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
-            mainButton.hide();
-            if (progress < totalCards) {
-        mainButton.show();
-    }
         }
-
-        // At the start of the game
-let initData = tg.initData || '';
-let userId = tg.initDataUnsafe?.user?.id;
-
-// Function to save game state
-function saveGameState() {
-    let gameState = {
-        score: score,
-        lives: lives,
-        progress: progress,
-        timeline: Array.from(timeline.children).map(card => card.textContent)
-    };
-    tg.CloudStorage.setItem('gameState', JSON.stringify(gameState));
-}
-
-// Function to load game state
-function loadGameState() {
-    tg.CloudStorage.getItem('gameState', function(err, value) {
-        if (err) {
-            console.error('Error loading game state:', err);
-            return;
-        }
-        if (value) {
-            let gameState = JSON.parse(value);
-            score = gameState.score;
-            lives = gameState.lives;
-            progress = gameState.progress;
-            // Reconstruct timeline
-            clearTimeline();
-            gameState.timeline.forEach(cardText => {
-                let card = createEventCard({ name: cardText, year: '', emoji: '' });
-                timeline.appendChild(card);
-            });
-            updateGameInfo();
-        }
-    });
-}
-
-// Call loadGameState at the start of your game
-loadGameState();
 
         // Create a new event card
         function createEventCard(event, isCurrentCard = false) {
@@ -660,10 +603,10 @@ loadGameState();
 
         // Handle drag start event
         function handleDragStart(e) {
-            if (e.type === 'touchstart') return; // Ignore touch events here
-            e.dataTransfer.setData('text/plain', e.target.id);
-            setTimeout(() => (currentCard.style.opacity = '0.5'), 0);
-        }
+    if (e.type === 'touchstart') return; // Ignore touch events here
+    e.dataTransfer.setData('text/plain', e.target.id);
+    setTimeout(() => (currentCard.style.opacity = '0.5'), 0);
+}
 
         // Handle drag end event
         function handleDragEnd() {
@@ -692,45 +635,45 @@ loadGameState();
 
         // Handle drop event
         function handleDrop(e) {
-            e.preventDefault();
-            const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
-            if (id === 'current-card') {
-                const currentEvent = events.find(event => event.name === currentCard.querySelector('.card-title').textContent);
-                const newCard = createEventCard(currentEvent);
-                const afterElement = getDragAfterElement(timeline, e.clientX);
+    e.preventDefault();
+    const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
+    if (id === 'current-card') {
+        const currentEvent = events.find(event => event.name === currentCard.querySelector('.card-title').textContent);
+        const newCard = createEventCard(currentEvent);
+        const afterElement = getDragAfterElement(timeline, e.clientX);
 
-                if (afterElement) {
-                    timeline.insertBefore(newCard, afterElement);
-                } else {
-                    timeline.appendChild(newCard);
-                }
-
-                const isCorrect = validateCardPlacement(newCard);
-                if (isCorrect) {
-                    newCard.querySelector('.card-year').style.display = 'block';
-                    updateGameState(true);
-                } else {
-                    timeline.removeChild(newCard);
-                    updateGameState(false);
-                }
-                resetCurrentCard();
-            }
-            placementIndicator.style.display = 'none';
-            resetCardPositions();
+        if (afterElement) {
+            timeline.insertBefore(newCard, afterElement);
+        } else {
+            timeline.appendChild(newCard);
         }
 
-        function getDragAfterElement(container, x) {
-            const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = x - box.left - box.width / 2;
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
-                } else {
-                    return closest;
-                }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        const isCorrect = validateCardPlacement(newCard);
+        if (isCorrect) {
+            newCard.querySelector('.card-year').style.display = 'block';
+            updateGameState(true);
+        } else {
+            timeline.removeChild(newCard);
+            updateGameState(false);
         }
+        resetCurrentCard();
+    }
+    placementIndicator.style.display = 'none';
+    resetCardPositions();
+}
+
+function getDragAfterElement(container, x) {
+    const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = x - box.left - box.width / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
 
         // Get the element to insert the dragged card after
         function getDragAfterElement(container, x) {
@@ -815,7 +758,6 @@ loadGameState();
             } else {
                 drawCardButton.disabled = false;
             }
-            saveGameState();
         }
 
         // Reset current card
@@ -844,111 +786,103 @@ loadGameState();
             setTimeout(() => {
                 feedback.style.display = 'none';
             }, 1500);
-            if (isCorrect) {
-        tg.HapticFeedback.notificationOccurred('success');
-    } else {
-        tg.HapticFeedback.notificationOccurred('error');
-    }
         }
 
         // End the game
         function endGame() {
             drawCardButton.disabled = true;
-    const message = lives <= 0
-        ? `Game Over! You've run out of lives. Your final score is ${score}.`
-        : `Congratulations! You've completed the game with a score of ${score}.`;
-    tg.showAlert(message, function() {
-        restartGame();
-    });
-            tg.BackButton.show();
-
+            const message = lives <= 0
+                ? `Game Over! You've run out of lives. Your final score is ${score}.`
+                : `Congratulations! You've completed the game with a score of ${score}.`;
+            modalMessage.textContent = message;
+            gameEndModal.style.display = 'block';
         }
 
         // Restart the game
         function restartGame() {
-    tg.BackButton.hide();
-    initializeGame();
-}
+            gameEndModal.style.display = 'none';
+            initializeGame();
+        }
 
         // Implement touch drag and drop functionality
         function implementTouchDragDrop() {
-            let isDragging = false;
-            let startX, startY;
-            let originalX, originalY;
+    let isDragging = false;
+    let startX, startY;
+    let originalX, originalY;
 
-            currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
-            document.addEventListener('touchmove', handleTouchMove, { passive: false });
-            document.addEventListener('touchend', handleTouchEnd);
+    currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
 
-            function handleTouchStart(e) {
-                if (!currentCard.draggable) return;
-                isDragging = true;
-                e.preventDefault(); // Prevent scrolling when starting drag
-                const touch = e.touches[0];
-                startX = touch.clientX - currentCard.offsetLeft;
-                startY = touch.clientY - currentCard.offsetTop;
-                originalX = currentCard.offsetLeft;
-                originalY = currentCard.offsetTop;
-                currentCard.style.zIndex = '1000';
-            }
+    function handleTouchStart(e) {
+        if (!currentCard.draggable) return;
+        isDragging = true;
+        e.preventDefault(); // Prevent scrolling when starting drag
+        const touch = e.touches[0];
+        startX = touch.clientX - currentCard.offsetLeft;
+        startY = touch.clientY - currentCard.offsetTop;
+        originalX = currentCard.offsetLeft;
+        originalY = currentCard.offsetTop;
+        currentCard.style.zIndex = '1000';
+    }
 
-            function handleTouchMove(e) {
-                if (!isDragging) return;
-                e.preventDefault(); // Prevent scrolling during drag
-                const touch = e.touches[0];
-                let newX = touch.clientX - startX;
-                let newY = touch.clientY - startY;
+    function handleTouchMove(e) {
+        if (!isDragging) return;
+        e.preventDefault(); // Prevent scrolling during drag
+        const touch = e.touches[0];
+        let newX = touch.clientX - startX;
+        let newY = touch.clientY - startY;
 
-                currentCard.style.position = 'fixed';
-                currentCard.style.left = newX + 'px';
-                currentCard.style.top = newY + 'px';
+        currentCard.style.position = 'fixed';
+        currentCard.style.left = newX + 'px';
+        currentCard.style.top = newY + 'px';
 
-                const afterElement = getDragAfterElement(timeline, touch.clientX);
-                updateCardPositions(afterElement);
+        const afterElement = getDragAfterElement(timeline, touch.clientX);
+        updateCardPositions(afterElement);
 
-                placementIndicator.style.display = 'block';
-                if (afterElement) {
-                    timeline.insertBefore(placementIndicator, afterElement);
-                } else {
-                    timeline.appendChild(placementIndicator);
-                }
-            }
-
-            function handleTouchEnd(e) {
-                if (!isDragging) return;
-                isDragging = false;
-                currentCard.style.zIndex = '';
-                placementIndicator.style.display = 'none';
-
-                const touch = e.changedTouches[0];
-                const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-
-                if (timeline.contains(dropTarget)) {
-                    handleDrop(createTouchDropEvent(touch));
-                } else {
-                    resetCurrentCardPosition();
-                }
-
-                resetCardPositions();
-            }
-
-            function createTouchDropEvent(touch) {
-                return {
-                    preventDefault: () => { },
-                    clientX: touch.clientX,
-                    clientY: touch.clientY,
-                    dataTransfer: {
-                        getData: () => 'current-card'
-                    }
-                };
-            }
-
-            function resetCurrentCardPosition() {
-                currentCard.style.position = 'static';
-                currentCard.style.left = '';
-                currentCard.style.top = '';
-            }
+        placementIndicator.style.display = 'block';
+        if (afterElement) {
+            timeline.insertBefore(placementIndicator, afterElement);
+        } else {
+            timeline.appendChild(placementIndicator);
         }
+    }
+
+    function handleTouchEnd(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        currentCard.style.zIndex = '';
+        placementIndicator.style.display = 'none';
+        
+        const touch = e.changedTouches[0];
+        const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+        
+        if (timeline.contains(dropTarget)) {
+            handleDrop(createTouchDropEvent(touch));
+        } else {
+            resetCurrentCardPosition();
+        }
+        
+        resetCardPositions();
+    }
+
+    function createTouchDropEvent(touch) {
+        return {
+            preventDefault: () => {},
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+            dataTransfer: {
+                getData: () => 'current-card'
+            }
+        };
+    }
+
+    function resetCurrentCardPosition() {
+        currentCard.style.position = 'static';
+        currentCard.style.left = '';
+        currentCard.style.top = '';
+    }
+}
 
         // Reset current card position
         function resetCurrentCardPosition() {
