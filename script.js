@@ -39,13 +39,9 @@ updateMainButton('Draw Card', true);
 // DOM Elements
 function setupEventListeners() {
     console.log("Setting up event listeners...");
+    const currentCard = document.getElementById('current-card');
     const timeline = document.getElementById('timeline');
-const currentCard = document.getElementById('current-card');
-const scoreElement = document.getElementById('score');
-const livesElement = document.getElementById('lives');
-const progressElement = document.getElementById('progress');
-const placementIndicator = document.querySelector('.placement-indicator');
-const feedback = document.getElementById('feedback');
+    
     if (currentCard && timeline) {
       currentCard.addEventListener('dragstart', handleDragStart);
       currentCard.addEventListener('dragend', handleDragEnd);
@@ -550,8 +546,8 @@ function resetCurrentCardPosition() {
 }
 
 // Event Listeners
-//currentCard.addEventListener('dragstart', handleDragStart);
-//currentCard.addEventListener('dragend', handleDragEnd);
+currentCard.addEventListener('dragstart', handleDragStart);
+currentCard.addEventListener('dragend', handleDragEnd);
 timeline.addEventListener('dragover', handleDragOver);
 timeline.addEventListener('dragleave', handleDragLeave);
 timeline.addEventListener('drop', handleDrop);
