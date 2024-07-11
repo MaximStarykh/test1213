@@ -19,8 +19,8 @@
 }
 
 body {
-    background: var(--background-gradient);
-    color: var(--text-color);
+    background: var(--tg-theme-bg-color, #ffffff);
+    color: var(--tg-theme-text-color, #000000);
     font-family: 'Roboto', Arial, sans-serif;
     display: flex;
     flex-direction: column;
@@ -227,8 +227,8 @@ body {
 
 /* Improved Draw Card Button Styles */
 #draw-card {
-    background-color: var(--secondary-color);
-    color: var(--primary-color);
+    background-color: var(--tg-theme-button-color, #4CAF50);
+    color: var(--tg-theme-button-text-color, #ffffff);
     border: none;
     padding: 15px 30px;
     font-size: 1.2rem;
@@ -316,8 +316,8 @@ body {
 #restart-game {
     margin-top: 20px;
     padding: 10px 20px;
-    background-color: var(--secondary-color);
-    color: var(--primary-color);
+    background-color: var(--tg-theme-button-color, #4CAF50);
+    color: var(--tg-theme-button-text-color, #ffffff);
     border: none;
     border-radius: 5px;
     cursor: pointer;

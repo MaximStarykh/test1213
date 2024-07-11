@@ -1,3 +1,13 @@
+let tg = window.Telegram.WebApp;
+
+// Expand the Web App to full height
+tg.expand();
+
+// Add event listener for the back button
+tg.BackButton.onClick(() => {
+    tg.close();
+});
+
 // Game state variables
 let score = 0;
 let lives = 3;
@@ -34,11 +44,14 @@ const events = [
 
 // Initialize the game
 function initializeGame() {
+    tg.MainButton.setText('Start Game').show();
+tg.MainButton.onClick(startGame);
     availableEvents = [...events];
     score = 0;
     lives = 3;
     progress = 0;
     updateGameInfo();
+    tg.HapticFeedback.impactOccurred('light');
     clearTimeline();
     const randomIndex = Math.floor(Math.random() * availableEvents.length);
     const initialEvent = availableEvents.splice(randomIndex, 1)[0];
@@ -47,9 +60,15 @@ function initializeGame() {
     timeline.appendChild(initialCard);
     progress++;
     updateGameInfo();
+    tg.HapticFeedback.impactOccurred('light');
     resetCurrentCard();
     drawCardButton.disabled = false;
     implementTouchDragDrop();
+}
+
+function startGame() {
+    tg.MainButton.hide();
+    drawCard();
 }
 
 // Clear the timeline
@@ -302,13 +321,13 @@ function resetCurrentCard() {
 
 // Show feedback after card placement
 function showFeedback(isCorrect) {
-    feedback.textContent = isCorrect ? '✅' : '❌';
-    feedback.className = isCorrect ? 'correct' : 'incorrect';
-    feedback.style.display = 'flex';
-    feedback.setAttribute('aria-label', isCorrect ? 'Correct placement' : 'Incorrect placement');
-    setTimeout(() => {
-        feedback.style.display = 'none';
-    }, 1500);
+    const message = isCorrect ? 'Correct placement!' : 'Incorrect placement!';
+    tg.showAlert(message);
+    if (isCorrect) {
+        tg.HapticFeedback.notificationOccurred('success');
+    } else {
+        tg.HapticFeedback.notificationOccurred('error');
+    }
 }
 
 // End the game
@@ -317,13 +336,14 @@ function endGame() {
     const message = lives <= 0
         ? `Game Over! You've run out of lives. Your final score is ${score}.`
         : `Congratulations! You've completed the game with a score of ${score}.`;
-    modalMessage.textContent = message;
-    gameEndModal.style.display = 'block';
+    tg.MainButton.setText('Restart Game').show();
+    tg.MainButton.onClick(restartGame);
+    tg.showAlert(message);
 }
 
 // Restart the game
 function restartGame() {
-    gameEndModal.style.display = 'none';
+    tg.MainButton.hide();
     initializeGame();
 }
 
