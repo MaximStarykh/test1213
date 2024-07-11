@@ -19,12 +19,15 @@
 }
 
 body {
-    background: var(--tg-theme-bg-color, #ffffff);
+    background-color: var(--tg-theme-bg-color, #ffffff);
     color: var(--tg-theme-text-color, #000000);
     font-family: 'Roboto', Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
     overflow-x: hidden;
     line-height: 1.6;
 }
@@ -32,11 +35,13 @@ body {
 /* Improved Game Container Layout */
 #game-container {
     display: flex;
+    flex: 1;
+    overflow-y: auto;
     flex-direction: column;
     align-items: center;
     max-width: 100%;
     width: 100%;
-    padding: 20px;
+    padding:0 20px 20px;
     box-sizing: border-box;
 }
 
@@ -49,10 +54,17 @@ body {
     font-size: 1.2rem;
     color: var(--text-color);
     margin-bottom: 20px;
-    padding: 15px;
-    background-color: rgba(255, 255, 255, 0.8);
     border-radius: 10px;
     box-shadow: var(--card-shadow);
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: var(--tg-theme-bg-color, #ffffff);
+    border-bottom: 1px solid var(--tg-theme-hint-color, #cccccc);
+    margin: 0 -20px 20px;
+    padding: 10px 20px;
 }
 
 #game-info>div {
@@ -81,7 +93,7 @@ body {
     justify-content: center;
     overflow-x: auto;
     padding: 20px;
-    background: var(--timeline-gradient);
+    background: var(--tg-theme-secondary-bg-color, --timeline-gradient);
     border-radius: 10px;
     position: relative;
     white-space: nowrap;
@@ -107,6 +119,8 @@ body {
     position: relative;
     cursor: pointer;
     perspective: 1000px;
+    background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+    color: var(--tg-theme-text-color, #000000);
 }
 
 
@@ -150,8 +164,8 @@ body {
 }
 
 .card-back {
-    background-color: var(--secondary-color);
-    color: white;
+    background-color: var(--tg-theme-button-color, #3390ec);
+    color: var(--tg-theme-button-text-color, #ffffff);
     transform: rotateY(180deg);
     display: flex;
     justify-content: center;
@@ -275,12 +289,13 @@ body {
 
 /* Improved Feedback Styles */
 #feedback {
+    background-color: var(--tg-theme-bg-color, --card-color);
+    color: var(--tg-theme-text-color, #000000);
     position: fixed;
     right: 20px;
     top: 20px;
     font-size: 2rem;
     z-index: 1000;
-    background-color: var(--card-color);
     border-radius: 50%;
     width: 60px;
     height: 60px;
@@ -299,7 +314,8 @@ body {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: var(--tg-theme-bg-color, #ffffff);
+    color: var(--tg-theme-text-color, #000000);
 }
 
 .modal-content {
@@ -316,7 +332,7 @@ body {
 #restart-game {
     margin-top: 20px;
     padding: 10px 20px;
-    background-color: var(--tg-theme-button-color, #4CAF50);
+    background-color: var(--tg-theme-button-color, #3390ec);
     color: var(--tg-theme-button-text-color, #ffffff);
     border: none;
     border-radius: 5px;

@@ -3,6 +3,18 @@ let tg = window.Telegram.WebApp;
 // Expand the Web App to full height
 tg.expand();
 
+tg.MainButton.setText('Draw Card').show();
+
+tg.onEvent('viewportChanged', adjustLayout);
+
+function adjustLayout() {
+    document.body.style.height = `${tg.viewportHeight}px`;
+}
+
+adjustLayout();
+
+
+
 // Add event listener for the back button
 tg.BackButton.onClick(() => {
     tg.close();
@@ -44,8 +56,6 @@ const events = [
 
 // Initialize the game
 function initializeGame() {
-    tg.MainButton.setText('Start Game').show();
-tg.MainButton.onClick(startGame);
     availableEvents = [...events];
     score = 0;
     lives = 3;
@@ -62,13 +72,10 @@ tg.MainButton.onClick(startGame);
     updateGameInfo();
     tg.HapticFeedback.impactOccurred('light');
     resetCurrentCard();
-    drawCardButton.disabled = false;
+    tg.MainButton.setText('Draw Card');
+    tg.MainButton.show();
+    tg.MainButton.onClick(drawCard);
     implementTouchDragDrop();
-}
-
-function startGame() {
-    tg.MainButton.hide();
-    drawCard();
 }
 
 // Clear the timeline
@@ -98,7 +105,7 @@ function drawCard() {
 
     currentCard.innerHTML = createEventCard(currentEvent, true).innerHTML;
 
-    drawCardButton.disabled = true;
+    tg.MainButton.hide();
     currentCard.draggable = true;
     currentCard.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
 }
@@ -322,7 +329,11 @@ function resetCurrentCard() {
 // Show feedback after card placement
 function showFeedback(isCorrect) {
     const message = isCorrect ? 'Correct placement!' : 'Incorrect placement!';
-    tg.showAlert(message);
+    tg.showPopup({
+        message: message,
+        buttons: [{type: 'ok'}]
+    });
+
     if (isCorrect) {
         tg.HapticFeedback.notificationOccurred('success');
     } else {
@@ -330,20 +341,31 @@ function showFeedback(isCorrect) {
     }
 }
 
+tg.BackButton.onClick(() => {
+    if (confirm('Are you sure you want to quit the game?')) {
+        tg.close();
+    }
+});
+
 // End the game
 function endGame() {
-    drawCardButton.disabled = true;
+    tg.MainButton.setText('Restart Game');
+    tg.MainButton.show();
+    tg.MainButton.onClick(restartGame);
+
     const message = lives <= 0
         ? `Game Over! You've run out of lives. Your final score is ${score}.`
         : `Congratulations! You've completed the game with a score of ${score}.`;
-    tg.MainButton.setText('Restart Game').show();
-    tg.MainButton.onClick(restartGame);
-    tg.showAlert(message);
+    
+    tg.showPopup({
+        title: 'Game Over',
+        message: message,
+        buttons: [{type: 'ok'}]
+    });
 }
 
 // Restart the game
 function restartGame() {
-    tg.MainButton.hide();
     initializeGame();
 }
 
@@ -435,7 +457,6 @@ function resetCurrentCardPosition() {
 }
 
 // Event Listeners
-drawCardButton.addEventListener('click', drawCard);
 currentCard.addEventListener('dragstart', handleDragStart);
 currentCard.addEventListener('dragend', handleDragEnd);
 timeline.addEventListener('dragover', handleDragOver);
