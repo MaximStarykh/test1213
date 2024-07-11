@@ -3,22 +3,8 @@ let tg = window.Telegram.WebApp;
 // Expand the Web App to full height
 tg.expand();
 
-tg.MainButton.setText('Draw Card').show();
-
-tg.onEvent('viewportChanged', adjustLayout);
-
-function adjustLayout() {
-    document.body.style.height = `${tg.viewportHeight}px`;
-}
-
-adjustLayout();
-
-
-
-// Add event listener for the back button
-tg.BackButton.onClick(() => {
-    tg.close();
-});
+// Enable closing confirmation dialog
+tg.enableClosingConfirmation();
 
 // Game state variables
 let score = 0;
@@ -26,6 +12,34 @@ let lives = 3;
 let progress = 0;
 const totalCards = 10;
 let availableEvents = [];
+let mainButton = tg.MainButton;
+
+function updateMainButton(text, visible) {
+  if (visible) {
+    mainButton.setText(text);
+    mainButton.show();
+  } else {
+    mainButton.hide();
+  }
+}
+
+mainButton.onClick(drawCard);
+
+// Replace drawCardButton click listener with:
+updateMainButton('Draw Card', true);
+
+// In updateGameState function:
+if (progress === totalCards) {
+  updateMainButton('Game Over', false);
+} else {
+  updateMainButton('Draw Card', true);
+}
+
+tg.BackButton.onClick(() => {
+    if (confirm('Are you sure you want to exit the game?')) {
+      tg.close();
+    }
+  });
 
 // DOM Elements
 const timeline = document.getElementById('timeline');
@@ -61,7 +75,6 @@ function initializeGame() {
     lives = 3;
     progress = 0;
     updateGameInfo();
-    tg.HapticFeedback.impactOccurred('light');
     clearTimeline();
     const randomIndex = Math.floor(Math.random() * availableEvents.length);
     const initialEvent = availableEvents.splice(randomIndex, 1)[0];
@@ -70,11 +83,8 @@ function initializeGame() {
     timeline.appendChild(initialCard);
     progress++;
     updateGameInfo();
-    tg.HapticFeedback.impactOccurred('light');
     resetCurrentCard();
-    tg.MainButton.setText('Draw Card');
-    tg.MainButton.show();
-    tg.MainButton.onClick(drawCard);
+    drawCardButton.disabled = false;
     implementTouchDragDrop();
 }
 
@@ -105,7 +115,7 @@ function drawCard() {
 
     currentCard.innerHTML = createEventCard(currentEvent, true).innerHTML;
 
-    tg.MainButton.hide();
+    drawCardButton.disabled = true;
     currentCard.draggable = true;
     currentCard.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
 }
@@ -328,44 +338,102 @@ function resetCurrentCard() {
 
 // Show feedback after card placement
 function showFeedback(isCorrect) {
-    const message = isCorrect ? 'Correct placement!' : 'Incorrect placement!';
-    tg.showPopup({
-        message: message,
-        buttons: [{type: 'ok'}]
-    });
-
+    feedback.textContent = isCorrect ? '✅' : '❌';
+    feedback.className = isCorrect ? 'correct' : 'incorrect';
+    feedback.style.display = 'flex';
+    
     if (isCorrect) {
-        tg.HapticFeedback.notificationOccurred('success');
+      tg.HapticFeedback.notificationOccurred('success');
     } else {
-        tg.HapticFeedback.notificationOccurred('error');
+      tg.HapticFeedback.notificationOccurred('error');
     }
+    
+    setTimeout(() => {
+      feedback.style.display = 'none';
+    }, 1500);
+  }
+
+  tg.onEvent('viewportChanged', updateLayout);
+
+  // Initialize viewport dimensions
+let viewportHeight = window.innerHeight;
+let viewportWidth = window.innerWidth;
+
+// Function to update layout
+function updateLayout() {
+    viewportHeight = window.innerHeight;
+    viewportWidth = window.innerWidth;
+
+    // Adjust game container size
+    const gameContainer = document.getElementById('game-container');
+    gameContainer.style.height = `${viewportHeight}px`;
+    gameContainer.style.width = `${viewportWidth}px`;
+
+    // Adjust timeline size and position
+    const timeline = document.getElementById('timeline');
+    timeline.style.width = `${viewportWidth - 40}px`; // 20px padding on each side
+    timeline.style.height = `${viewportHeight * 0.4}px`; // 40% of viewport height
+
+    // Adjust current card size
+    const currentCard = document.getElementById('current-card');
+    currentCard.style.width = `${Math.min(viewportWidth * 0.8, 180)}px`; // Max width of 180px
+    currentCard.style.height = `${Math.min(viewportHeight * 0.3, 250)}px`; // Max height of 250px
+
+    // Recalculate card positions in timeline
+    repositionTimelineCards();
 }
 
-tg.BackButton.onClick(() => {
-    if (confirm('Are you sure you want to quit the game?')) {
-        tg.close();
-    }
-});
+// Function to reposition cards in timeline
+function repositionTimelineCards() {
+    const cards = document.querySelectorAll('#timeline .card');
+    const timelineWidth = document.getElementById('timeline').offsetWidth;
+    const cardWidth = cards[0]?.offsetWidth || 180; // Use 180 as default if no cards present
+    const maxCards = Math.floor(timelineWidth / (cardWidth + 20)); // 20px for margins
+
+    cards.forEach((card, index) => {
+        if (index < maxCards) {
+            card.style.display = 'block';
+            card.style.left = `${index * (cardWidth + 20)}px`;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Event listener for Telegram's viewportChanged event
+tg.onEvent('viewportChanged', updateLayout);
+
+// Event listener for window resize (for testing in browser)
+window.addEventListener('resize', updateLayout);
+
+// Initial layout update
+updateLayout();
+
 
 // End the game
 function endGame() {
-    tg.MainButton.setText('Restart Game');
-    tg.MainButton.show();
-    tg.MainButton.onClick(restartGame);
-
+    drawCardButton.disabled = true;
     const message = lives <= 0
-        ? `Game Over! You've run out of lives. Your final score is ${score}.`
-        : `Congratulations! You've completed the game with a score of ${score}.`;
+      ? `Game Over! You've run out of lives. Your final score is ${score}.`
+      : `Congratulations! You've completed the game with a score of ${score}.`;
     
     tg.showPopup({
-        title: 'Game Over',
-        message: message,
-        buttons: [{type: 'ok'}]
+      title: 'Game Over',
+      message: message,
+      buttons: [{
+        type: 'ok',
+        text: 'Restart Game'
+      }]
+    }, function(buttonId) {
+      if (buttonId === 'ok') {
+        restartGame();
+      }
     });
-}
+  }
 
 // Restart the game
 function restartGame() {
+    gameEndModal.style.display = 'none';
     initializeGame();
 }
 
@@ -457,6 +525,7 @@ function resetCurrentCardPosition() {
 }
 
 // Event Listeners
+drawCardButton.addEventListener('click', drawCard);
 currentCard.addEventListener('dragstart', handleDragStart);
 currentCard.addEventListener('dragend', handleDragEnd);
 timeline.addEventListener('dragover', handleDragOver);
