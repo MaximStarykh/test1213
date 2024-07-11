@@ -52,7 +52,7 @@ tg.BackButton.onClick(() => {
 // DOM Elements
 const timeline = document.getElementById('timeline');
 const currentCard = document.getElementById('current-card');
-const drawCardButton = document.getElementById('draw-card');
+//const drawCardButton = document.getElementById('draw-card');
 const scoreElement = document.getElementById('score');
 const livesElement = document.getElementById('lives');
 const progressElement = document.getElementById('progress');
@@ -110,6 +110,7 @@ function updateGameInfo() {
 
 // Draw a new card
 function drawCard() {
+    updateMainButton('Place Card', true);
     if (availableEvents.length === 0) {
         endGame();
         return;
@@ -203,9 +204,23 @@ function handleDragLeave() {
     placementIndicator.style.display = 'none';
 }
 
+function createTouchDropEvent(touch) {
+    return {
+      preventDefault: () => {},
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      dataTransfer: {
+        getData: () => 'current-card'
+      }
+    };
+  }
+
 // Handle drop event
 function handleDrop(e) {
 e.preventDefault();
+updateMainButton('Place Card', true);
+timeline.appendChild(newCard);
+updateCardCache();
 const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
 if (id === 'current-card') {
 const currentEvent = events.find(event => event.name === currentCard.querySelector('.card-title').textContent);

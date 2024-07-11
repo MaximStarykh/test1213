@@ -88,7 +88,7 @@ body {
     align-items: center;
     justify-content: flex-start;
     overflow-x: auto;
-    padding: 20px;
+    padding: 20px 50vw; /* Add 50vw padding on both sides */
     background: var(--timeline-gradient);
     border-radius: 10px;
     position: relative;
@@ -97,6 +97,13 @@ body {
     scroll-snap-type: x mandatory;
     margin-bottom: 20px;
     width: 100%;
+    scroll-padding: 0 50vw; /* Add scroll padding to account for the added space */
+}
+
+#timeline::before,
+#timeline::after {
+    content: '';
+    flex: 0 0 50vw; /* Create pseudo-elements with width of half the viewport */
 }
 
 /* Enhanced Card Styles */
