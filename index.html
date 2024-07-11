@@ -2,22 +2,64 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Card Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Enhanced Timeline Card Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="game-container">
-        <div id="game-info">
-            <div id="score">Score: 0</div>
-            <div id="lives">Lives: ❤️❤️❤️</div>
-            <div id="progress">Progress: 1/10</div>
+        <!-- Game info section -->
+        <div id="game-info" aria-live="polite">
+            <div>
+                <span class="icon" aria-hidden="true">🏆</span>
+                <span id="score">0</span>
+                <span class="visually-hidden">Score:</span>
+            </div>
+            <div>
+                <span id="lives" aria-label="Lives remaining">❤️❤️❤️</span>
+            </div>
+            <div>
+                <span class="icon" aria-hidden="true">📊</span>
+                <span id="progress">1/10</span>
+                <span class="visually-hidden">Progress:</span>
+            </div>
         </div>
-        <div id="timeline"></div>
-        <div id="current-card"></div>
-        <button id="draw-card">Draw Card</button>
+
+        <!-- Timeline section -->
+        <div id="timeline" role="list" aria-label="Timeline of events">
+            <div class="placement-indicator" aria-hidden="true"></div>
+        </div>
+
+        <!-- Current card section -->
+        <div id="current-card" class="card" draggable="true" role="button" tabindex="0">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="card-title">Draw a card</div>
+                    <div class="card-emoji" aria-hidden="true">🎴</div>
+                    <div class="card-year">to start!</div>
+                </div>
+                <div class="card-back">
+                    <div class="card-notice">Draw a card to begin the game!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Draw card button -->
+        <button id="draw-card" aria-label="Draw a new card">Draw Card</button>
+
+        <!-- Feedback element -->
+        <div id="feedback" aria-live="assertive"></div>
     </div>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Game end modal -->
+    <div id="game-end-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <h2 id="modal-title">Game Over</h2>
+            <p id="modal-message"></p>
+            <button id="restart-game">Restart Game</button>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

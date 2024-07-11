@@ -12,8 +12,7 @@ const drawCardButton = document.getElementById('draw-card');
 const scoreElement = document.getElementById('score');
 const livesElement = document.getElementById('lives');
 const progressElement = document.getElementById('progress');
-const placementIndicator = document.createElement('div');
-placementIndicator.className = 'placement-indicator';
+const placementIndicator = document.querySelector('.placement-indicator');
 const feedback = document.getElementById('feedback');
 const gameEndModal = document.getElementById('game-end-modal');
 const modalMessage = document.getElementById('modal-message');
@@ -127,7 +126,7 @@ function flipCard(card) {
 
 // Handle drag start event
 function handleDragStart(e) {
-    if (e.type === 'touchstart') return;
+    if (e.type === 'touchstart') return; // Ignore touch events here
     e.dataTransfer.setData('text/plain', e.target.id);
     setTimeout(() => (currentCard.style.opacity = '0.5'), 0);
 }
@@ -328,7 +327,7 @@ function implementTouchDragDrop() {
     function handleTouchStart(e) {
         if (!currentCard.draggable) return;
         isDragging = true;
-        e.preventDefault();
+        e.preventDefault(); // Prevent scrolling when starting drag
         const touch = e.touches[0];
         startX = touch.clientX - currentCard.offsetLeft;
         startY = touch.clientY - currentCard.offsetTop;
@@ -339,7 +338,7 @@ function implementTouchDragDrop() {
 
     function handleTouchMove(e) {
         if (!isDragging) return;
-        e.preventDefault();
+        e.preventDefault(); // Prevent scrolling during drag
         const touch = e.touches[0];
         let newX = touch.clientX - startX;
         let newY = touch.clientY - startY;
@@ -407,93 +406,4 @@ restartGameButton.addEventListener('click', restartGame);
 
 // Initialize the game
 initializeGame();
-
-// Telegram Mini App specific code
-if (window.Telegram && window.Telegram.WebApp) {
-    const webApp = window.Telegram.WebApp;
-    
-    // Notify Telegram that the Mini App is ready
-    webApp.ready();
-    
-    // Set up the main button
-    webApp.MainButton.setText('Restart Game').show().onClick(restartGame);
-    
-    // Adjust the theme
-    if (webApp.colorScheme === 'dark') {
-        document.body.classList.add('dark-theme');
-    }
-    
-    // Handle viewport changes
-    webApp.onEvent('viewportChanged', () => {
-        // Adjust layout if necessary
-        // For example, you might want to reorganize elements if the height changes significantly
-        const vh = webApp.viewportHeight;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-    });
-    
-    // Handle back button
-    webApp.BackButton.onClick(() => {
-        // You can add custom behavior here, like going back to the main menu
-        // For now, we'll just ask if they want to quit the game
-        if (confirm('Are you sure you want to quit the game?')) {
-            webApp.close();
-        }
-    });
-    
-    // You can also use webApp.sendData() to send data back to the bot
-    // For example, you might want to send the final score when the game ends
-    function sendScoreToBot(finalScore) {
-        webApp.sendData(JSON.stringify({action: 'gameComplete', score: finalScore}));
-    }
-    
-    // Modify the endGame function to send the score
-    const originalEndGame = endGame;
-    endGame = function() {
-        originalEndGame();
-        sendScoreToBot(score);
-    };
-}
-
-// Additional utility functions
-
-// Function to shuffle the events array
-function shuffleEvents() {
-    for (let i = availableEvents.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [availableEvents[i], availableEvents[j]] = [availableEvents[j], availableEvents[i]];
-    }
-}
-
-// Function to animate card placement
-function animateCardPlacement(card, targetPosition) {
-    const startPosition = card.getBoundingClientRect();
-    const deltaX = targetPosition.left - startPosition.left;
-    const deltaY = targetPosition.top - startPosition.top;
-    
-    card.style.transition = 'none';
-    card.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-    
-    setTimeout(() => {
-        card.style.transition = 'transform 0.5s ease-out';
-        card.style.transform = 'translate(0, 0)';
-    }, 50);
-}
-
-// Function to add sound effects
-function playSoundEffect(effect) {
-    const sound = new Audio(`sounds/${effect}.mp3`);
-    sound.play();
-}
-
-// Error handling function
-function handleError(error) {
-    console.error('An error occurred:', error);
-    alert('Oops! Something went wrong. Please try refreshing the page.');
-}
-
-// Wrap the game initialization in a try-catch block for error handling
-try {
-    initializeGame();
-} catch (error) {
-    handleError(error);
-}
+implementTouchDragDrop();
