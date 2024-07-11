@@ -11,7 +11,7 @@ let lives = 3;
 let progress = 0;
 const totalCards = 10;
 let availableEvents = [];
-let tg.MainButton = tg.MainButton;
+let MainButton = tg.MainButton;
 
 const requiredElements = ['timeline', 'current-card', 'score', 'lives', 'progress', 'placement-indicator', 'feedback'];
 for (const elementId of requiredElements) {
