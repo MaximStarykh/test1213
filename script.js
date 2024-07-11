@@ -3,6 +3,7 @@ let tg = window.Telegram.WebApp;
 if (window.Telegram && window.Telegram.WebApp) {
     let tg = window.Telegram.WebApp;
     tg.ready();
+    tg.expand(); // Expand the Web App to full height
     console.log("Telegram Web App initialized");
 
 // Game state variables
@@ -10,8 +11,7 @@ let score = 0;
 let lives = 3;
 let progress = 0;
 const totalCards = 10;
-let availableEvents = [];
-let MainButton = tg.MainButton;
+let availableEvents = []
 
 const requiredElements = ['timeline', 'current-card', 'score', 'lives', 'progress', 'placement-indicator', 'feedback'];
 for (const elementId of requiredElements) {
@@ -20,30 +20,14 @@ for (const elementId of requiredElements) {
     tg.showAlert(`Error: Required element #${elementId} not found. The game may not function correctly.`);
   }
 }
-tg.expand(); // Expand the Web App to full height
 
 // Initialize the main button
 function initializeMainButton() {
-    console.log("Initializing main button...");
-    if (tg.MainButton) {
-      tg.MainButton.setText('Draw Card');
-      tg.MainButton.show();
-      tg.MainButton.onClick(drawCard);
-      console.log("Main button initialized");
-    } else {
-      console.error("tg.MainButton is not available");
-      // Fallback to a custom button if Telegram's MainButton is not available
-      createCustomDrawButton();
-    }
-  }
+    tg.MainButton.setText('Draw Card');
+    tg.MainButton.show();
+    tg.MainButton.onClick(drawCard);
+}
   
-  function createCustomDrawButton() {
-    const customButton = document.createElement('button');
-    customButton.textContent = 'Draw Card';
-    customButton.className = 'tg-button';
-    customButton.onclick = drawCard;
-    document.body.appendChild(customButton);
-  }
 
 // Enable closing confirmation dialog
 tg.enableClosingConfirmation();
@@ -59,18 +43,6 @@ function updateMainButton(text, visible) {
 // Replace drawCardButton click listener with:
 updateMainButton('Draw Card', true);
 
-// In updateGameState function:
-if (progress === totalCards) {
-  updateMainButton('Game Over', false);
-} else {
-  updateMainButton('Draw Card', true);
-}
-
-tg.BackButton.onClick(() => {
-    if (confirm('Are you sure you want to exit the game?')) {
-      tg.close();
-    }
-  });
 
 // DOM Elements
 function setupEventListeners() {
@@ -405,12 +377,19 @@ function updateGameState(isCorrect) {
     progress++;
     updateGameInfo();
 
-    if (progress === totalCards) {
-        endGame();
-    } else {
-        updateMainButton('Draw Card', true);
-    }
+if (progress === totalCards) {
+    endGame();
+  } else {
+    updateMainButton('Draw Card', true);
+  }
+
 }
+
+tg.BackButton.onClick(() => {
+    if (confirm('Are you sure you want to exit the game?')) {
+      tg.close();
+    }
+  });
 
 // Reset current card
 function resetCurrentCard() {
@@ -505,7 +484,7 @@ updateLayout();
 
 // End the game
 function endGame() {
-updateMainButton('Draw Card', false);
+    updateMainButton('Game Over', false);
     const message = lives <= 0
       ? `Game Over! You've run out of lives. Your final score is ${score}.`
       : `Congratulations! You've completed the game with a score of ${score}.`;
