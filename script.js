@@ -14,6 +14,14 @@ const totalCards = 10;
 let availableEvents = [];
 let mainButton = tg.MainButton;
 
+const requiredElements = ['timeline', 'current-card', 'score', 'lives', 'progress', 'placement-indicator', 'feedback'];
+for (const elementId of requiredElements) {
+  if (!document.getElementById(elementId)) {
+    console.error(`Required element #${elementId} not found`);
+    tg.showAlert(`Error: Required element #${elementId} not found. The game may not function correctly.`);
+  }
+}
+
 function updateMainButton(text, visible) {
   if (visible) {
     mainButton.setText(text);
@@ -50,9 +58,6 @@ const livesElement = document.getElementById('lives');
 const progressElement = document.getElementById('progress');
 const placementIndicator = document.querySelector('.placement-indicator');
 const feedback = document.getElementById('feedback');
-const gameEndModal = document.getElementById('game-end-modal');
-const modalMessage = document.getElementById('modal-message');
-const restartGameButton = document.getElementById('restart-game');
 
 // Game events data
 const events = [
@@ -84,7 +89,7 @@ function initializeGame() {
     progress++;
     updateGameInfo();
     resetCurrentCard();
-    drawCardButton.disabled = false;
+    updateMainButton('Draw Card', true);
     implementTouchDragDrop();
 }
 
@@ -99,9 +104,9 @@ function clearTimeline() {
 // Update game information display
 function updateGameInfo() {
     scoreElement.textContent = score;
-    livesElement.innerHTML = '❤️'.repeat(lives);
+    livesElement.innerHTML = '❤️'.repeat(lives) + `<span class="visually-hidden">${lives} lives remaining</span>`;
     progressElement.textContent = `${progress}/${totalCards}`;
-}
+  }
 
 // Draw a new card
 function drawCard() {
@@ -115,7 +120,7 @@ function drawCard() {
 
     currentCard.innerHTML = createEventCard(currentEvent, true).innerHTML;
 
-    drawCardButton.disabled = true;
+updateMainButton('Draw Card', false);
     currentCard.draggable = true;
     currentCard.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
 }
@@ -162,9 +167,15 @@ function flipCard(card) {
 
 // Handle drag start event
 function handleDragStart(e) {
-if (e.type === 'touchstart') return; // Ignore touch events here
-e.dataTransfer.setData('text/plain', e.target.id);
-setTimeout(() => (currentCard.style.opacity = '0.5'), 0);
+    if (e.type === 'touchstart') return;
+    e.dataTransfer.setData('text/plain', e.target.id);
+    currentCard.style.opacity = '0.5';
+  }
+
+  const timeline = document.getElementById('timeline');
+if (!timeline) {
+  console.error('Timeline element not found');
+  return;
 }
 
 // Handle drag end event
@@ -221,19 +232,6 @@ placementIndicator.style.display = 'none';
 resetCardPositions();
 }
 
-function getDragAfterElement(container, x) {
-const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
-return draggableElements.reduce((closest, child) => {
-const box = child.getBoundingClientRect();
-const offset = x - box.left - box.width / 2;
-if (offset < 0 && offset > closest.offset) {
-    return { offset: offset, element: child };
-} else {
-    return closest;
-}
-}, { offset: Number.NEGATIVE_INFINITY }).element;
-}
-
 // Get the element to insert the dragged card after
 function getDragAfterElement(container, x) {
     const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
@@ -249,22 +247,29 @@ function getDragAfterElement(container, x) {
 }
 
 // Update card positions during drag
-function updateCardPositions(afterElement) {
-    const cards = timeline.querySelectorAll('.card');
-    cards.forEach(card => card.classList.remove('sliding-left', 'sliding-right'));
+let cachedCards = [];
 
-    if (afterElement) {
-        const previousElement = afterElement.previousElementSibling;
-        if (previousElement && previousElement.classList.contains('card')) {
-            previousElement.classList.add('sliding-left');
-            afterElement.classList.add('sliding-right');
-        } else {
-            afterElement.classList.add('sliding-right');
-        }
-    } else if (cards.length > 0) {
-        cards[cards.length - 1].classList.add('sliding-left');
-    }
+function updateCardCache() {
+  cachedCards = Array.from(timeline.querySelectorAll('.card'));
 }
+
+function updateCardPositions(afterElement) {
+  cachedCards.forEach(card => card.classList.remove('sliding-left', 'sliding-right'));
+
+  if (afterElement) {
+    const previousElement = afterElement.previousElementSibling;
+    if (previousElement && previousElement.classList.contains('card')) {
+      previousElement.classList.add('sliding-left');
+      afterElement.classList.add('sliding-right');
+    } else {
+      afterElement.classList.add('sliding-right');
+    }
+  } else if (cachedCards.length > 0) {
+    cachedCards[cachedCards.length - 1].classList.add('sliding-left');
+  }
+}
+
+// Call updateCardCache() after adding or removing cards
 
 // Reset card positions after drag
 function resetCardPositions() {
@@ -315,7 +320,7 @@ function updateGameState(isCorrect) {
     if (progress === totalCards) {
         endGame();
     } else {
-        drawCardButton.disabled = false;
+        updateMainButton('Draw Card', true);
     }
 }
 
@@ -412,7 +417,7 @@ updateLayout();
 
 // End the game
 function endGame() {
-    drawCardButton.disabled = true;
+updateMainButton('Draw Card', false);
     const message = lives <= 0
       ? `Game Over! You've run out of lives. Your final score is ${score}.`
       : `Congratulations! You've completed the game with a score of ${score}.`;
@@ -433,89 +438,69 @@ function endGame() {
 
 // Restart the game
 function restartGame() {
-    gameEndModal.style.display = 'none';
     initializeGame();
 }
 
 // Implement touch drag and drop functionality
 function implementTouchDragDrop() {
-let isDragging = false;
-let startX, startY;
-let originalX, originalY;
-
-currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
-document.addEventListener('touchmove', handleTouchMove, { passive: false });
-document.addEventListener('touchend', handleTouchEnd);
-
-function handleTouchStart(e) {
-if (!currentCard.draggable) return;
-isDragging = true;
-e.preventDefault(); // Prevent scrolling when starting drag
-const touch = e.touches[0];
-startX = touch.clientX - currentCard.offsetLeft;
-startY = touch.clientY - currentCard.offsetTop;
-originalX = currentCard.offsetLeft;
-originalY = currentCard.offsetTop;
-currentCard.style.zIndex = '1000';
-}
-
-function handleTouchMove(e) {
-if (!isDragging) return;
-e.preventDefault(); // Prevent scrolling during drag
-const touch = e.touches[0];
-let newX = touch.clientX - startX;
-let newY = touch.clientY - startY;
-
-currentCard.style.position = 'fixed';
-currentCard.style.left = newX + 'px';
-currentCard.style.top = newY + 'px';
-
-const afterElement = getDragAfterElement(timeline, touch.clientX);
-updateCardPositions(afterElement);
-
-placementIndicator.style.display = 'block';
-if (afterElement) {
-    timeline.insertBefore(placementIndicator, afterElement);
-} else {
-    timeline.appendChild(placementIndicator);
-}
-}
-
-function handleTouchEnd(e) {
-if (!isDragging) return;
-isDragging = false;
-currentCard.style.zIndex = '';
-placementIndicator.style.display = 'none';
-
-const touch = e.changedTouches[0];
-const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-
-if (timeline.contains(dropTarget)) {
-    handleDrop(createTouchDropEvent(touch));
-} else {
-    resetCurrentCardPosition();
-}
-
-resetCardPositions();
-}
-
-function createTouchDropEvent(touch) {
-return {
-    preventDefault: () => {},
-    clientX: touch.clientX,
-    clientY: touch.clientY,
-    dataTransfer: {
-        getData: () => 'current-card'
+    let isDragging = false;
+    let startX, startY;
+  
+    currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
+    currentCard.addEventListener('touchmove', handleTouchMove, { passive: false });
+    currentCard.addEventListener('touchend', handleTouchEnd);
+    currentCard.addEventListener('touchcancel', handleTouchEnd);
+  
+    function handleTouchStart(e) {
+      if (!currentCard.draggable) return;
+      isDragging = true;
+      e.preventDefault();
+      const touch = e.touches[0];
+      startX = touch.clientX - currentCard.offsetLeft;
+      startY = touch.clientY - currentCard.offsetTop;
+      currentCard.style.zIndex = '1000';
     }
-};
-}
-
-function resetCurrentCardPosition() {
-currentCard.style.position = 'static';
-currentCard.style.left = '';
-currentCard.style.top = '';
-}
-}
+  
+    function handleTouchMove(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      let newX = touch.clientX - startX;
+      let newY = touch.clientY - startY;
+  
+      currentCard.style.position = 'fixed';
+      currentCard.style.left = `${newX}px`;
+      currentCard.style.top = `${newY}px`;
+  
+      const afterElement = getDragAfterElement(timeline, touch.clientX);
+      updateCardPositions(afterElement);
+  
+      placementIndicator.style.display = 'block';
+      if (afterElement) {
+        timeline.insertBefore(placementIndicator, afterElement);
+      } else {
+        timeline.appendChild(placementIndicator);
+      }
+    }
+  
+    function handleTouchEnd(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      currentCard.style.zIndex = '';
+      placementIndicator.style.display = 'none';
+  
+      const touch = e.changedTouches[0];
+      const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+  
+      if (timeline.contains(dropTarget)) {
+        handleDrop(createTouchDropEvent(touch));
+      } else {
+        resetCurrentCardPosition();
+      }
+  
+      resetCardPositions();
+    }
+  }
 
 // Reset current card position
 function resetCurrentCardPosition() {
@@ -525,13 +510,11 @@ function resetCurrentCardPosition() {
 }
 
 // Event Listeners
-drawCardButton.addEventListener('click', drawCard);
 currentCard.addEventListener('dragstart', handleDragStart);
 currentCard.addEventListener('dragend', handleDragEnd);
 timeline.addEventListener('dragover', handleDragOver);
 timeline.addEventListener('dragleave', handleDragLeave);
 timeline.addEventListener('drop', handleDrop);
-restartGameButton.addEventListener('click', restartGame);
 
 
 

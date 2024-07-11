@@ -1,58 +1,65 @@
+/* CSS Custom Properties for easy theming and accessibility */
 :root {
-    /* Telegram theme variables */
-    --tg-theme-bg-color: var(--tg-theme-bg-color, #ffffff);
-    --tg-theme-text-color: var(--tg-theme-text-color, #000000);
-    --tg-theme-hint-color: var(--tg-theme-hint-color, #999999);
-    --tg-theme-link-color: var(--tg-theme-link-color, #2481cc);
-    --tg-theme-button-color: var(--tg-theme-button-color, #5288c1);
-    --tg-theme-button-text-color: var(--tg-theme-button-text-color, #ffffff);
-    
-    /* Custom theme variables */
-    --primary-color: var(--tg-theme-button-color);
-    --secondary-color: var(--tg-theme-link-color);
-    --text-color: var(--tg-theme-text-color);
-    --card-color: var(--tg-theme-bg-color);
+    --primary-color: #ffffff;
+    --secondary-color: #4CAF50;
+    --text-color: #333333;
+    --card-color: #ffffff;
     --incorrect-color: #F44336;
-    --background-gradient: linear-gradient(to right, var(--tg-theme-bg-color), color-mix(in srgb, var(--tg-theme-bg-color) 80%, var(--tg-theme-button-color) 20%));
-    --timeline-gradient: linear-gradient(135deg, color-mix(in srgb, var(--tg-theme-bg-color) 90%, var(--tg-theme-button-color) 10%), color-mix(in srgb, var(--tg-theme-bg-color) 70%, var(--tg-theme-button-color) 30%));
+    --background-gradient: linear-gradient(to right, var(--primary-color), #E8F5E9);
+    --timeline-gradient: linear-gradient(135deg, #E8F5E9, #81C784);
     --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     --button-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+
+    /* Telegram theme variables */
+    --tg-theme-bg-color: var(--tg-theme-bg-color, var(--primary-color));
+    --tg-theme-text-color: var(--tg-theme-text-color, var(--text-color));
+    --tg-theme-hint-color: var(--tg-theme-hint-color, #999999);
+    --tg-theme-link-color: var(--tg-theme-link-color, var(--secondary-color));
+    --tg-theme-button-color: var(--tg-theme-button-color, var(--secondary-color));
+    --tg-theme-button-text-color: var(--tg-theme-button-text-color, var(--primary-color));
+}
+
+/* Global Reset and Base Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
     background: var(--background-gradient);
-    color: var(--text-color);
+    color: var(--tg-theme-text-color);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     overflow-x: hidden;
     line-height: 1.6;
-    margin: 0;
-    padding: 0;
 }
 
+/* Improved Game Container Layout */
 #game-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     max-width: 100%;
     width: 100%;
-    padding: 16px;
+    padding: 20px;
     box-sizing: border-box;
 }
 
+/* Enhanced Game Info Section */
 #game-info {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 15px;
     align-items: center;
-    font-size: 1rem;
-    color: var(--text-color);
-    margin-bottom: 16px;
-    padding: 12px;
-    background-color: color-mix(in srgb, var(--tg-theme-bg-color) 90%, var(--tg-theme-button-color) 10%);
-    border-radius: 12px;
+    font-size: 1.2rem;
+    color: var(--tg-theme-text-color);
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--tg-theme-bg-color);
+    border-radius: 10px;
     box-shadow: var(--card-shadow);
 }
 
@@ -65,39 +72,42 @@ body {
 }
 
 #game-info .icon {
-    font-size: 1.5em;
-    margin-bottom: 4px;
+    font-size: 1.8em;
+    margin-bottom: 5px;
 }
 
 #lives {
     display: flex;
-    gap: 4px;
+    gap: 5px;
 }
 
+/* Improved Timeline Section */
 #timeline {
     flex-grow: 1;
     display: flex;
     align-items: center;
     justify-content: flex-start;
     overflow-x: auto;
-    padding: 16px;
+    padding: 20px;
     background: var(--timeline-gradient);
-    border-radius: 12px;
+    border-radius: 10px;
     position: relative;
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
-    margin-bottom: 16px;
-    width: calc(100% - 32px);
+    margin-bottom: 20px;
+    width: 100%;
 }
 
+/* Enhanced Card Styles */
 .card {
     flex-shrink: 0;
     scroll-snap-align: center;
-    width: 150px;
-    height: 200px;
-    margin: 0 8px;
-    transition: transform 0.3s ease;
+    width: 180px;
+    height: 250px;
+    margin: 0 10px;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
     position: relative;
     cursor: pointer;
     perspective: 1000px;
@@ -126,27 +136,36 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 12px;
-    border-radius: 12px;
+    padding: 15px;
+    border-radius: 15px;
     box-shadow: var(--card-shadow);
     background-color: var(--card-color);
 }
 
 .card-front {
     background-color: var(--card-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
 }
 
 .card-back {
     background-color: var(--secondary-color);
-    color: var(--tg-theme-button-text-color);
+    color: var(--primary-color);
     transform: rotateY(180deg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 .card-title {
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: bold;
     text-align: center;
-    margin-top: 4px;
+    margin-top: 5px;
     max-width: 100%;
     overflow-wrap: break-word;
     word-wrap: break-word;
@@ -158,7 +177,7 @@ body {
 }
 
 .card-emoji {
-    font-size: 3rem;
+    font-size: 4rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -166,14 +185,15 @@ body {
 }
 
 .card-year {
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: bold;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
     color: var(--secondary-color);
+    margin-top: auto;
 }
 
 .card-notice {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     line-height: 1.4;
     text-align: center;
     width: 100%;
@@ -181,16 +201,17 @@ body {
     overflow-y: auto;
     white-space: normal;
     word-wrap: break-word;
-    padding: 8px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
+/* Current Card Styles */
 #current-card {
     align-self: center;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     cursor: grab;
 }
 
@@ -198,54 +219,77 @@ body {
     cursor: grabbing;
 }
 
-#draw-card {
+/* Telegram-style Button */
+.tg-button {
     background-color: var(--tg-theme-button-color);
     color: var(--tg-theme-button-text-color);
     border: none;
-    padding: 12px 24px;
+    padding: 12px 20px;
     font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s;
-    margin: 12px auto;
-    border-radius: 20px;
-    box-shadow: var(--button-shadow);
-    display: block;
-    width: 180px;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
 }
 
-#draw-card:hover {
-    background-color: color-mix(in srgb, var(--tg-theme-button-color) 90%, black 10%);
+.tg-button:hover {
+    opacity: 0.8;
 }
 
-#draw-card:active {
+.tg-button:active {
     transform: scale(0.98);
 }
 
-#draw-card:disabled {
-    background-color: var(--tg-theme-hint-color);
+.tg-button:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
+/* Card Animation Classes */
+.card.sliding-left {
+    margin-right: 95px;
+    transition: margin 0.3s ease;
+}
+
+.card.sliding-right {
+    margin-left: 95px;
+    transition: margin 0.3s ease;
+}
+
+/* Improved Feedback Styles */
 #feedback {
     position: fixed;
-    right: 16px;
-    top: 16px;
-    font-size: 1.5rem;
+    right: 20px;
+    top: 20px;
+    font-size: 2rem;
     z-index: 1000;
-    background-color: var(--card-color);
+    background-color: var(--tg-theme-bg-color);
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     display: none;
     justify-content: center;
     align-items: center;
     box-shadow: var(--card-shadow);
 }
 
+/* Telegram-style Popup (for reference, not directly used in CSS) */
+.tg-popup {
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Improved Media Queries for Responsiveness */
 @media (max-width: 768px) {
     #game-info {
         font-size: 0.9rem;
-        padding: 8px;
+        padding: 10px;
     }
 
     #game-info .icon {
@@ -253,41 +297,41 @@ body {
     }
 
     .card {
-        width: 130px;
-        height: 180px;
+        width: 150px;
+        height: 200px;
     }
 
     .card-title {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
 
     .card-year {
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
 
     .card-emoji {
-        font-size: 2.5rem;
+        font-size: 3rem;
     }
 
     .card-notice {
-        font-size: 0.7rem;
+        font-size: 0.8rem;
     }
 
     #timeline {
-        padding: 12px;
+        padding: 10px;
     }
 
     #current-card {
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
 
-    #draw-card {
-        padding: 10px 20px;
+    .tg-button {
+        padding: 10px 15px;
         font-size: 0.9rem;
-        width: 150px;
     }
 }
 
+/* Accessibility Improvements */
 .visually-hidden {
     position: absolute;
     width: 1px;
@@ -300,8 +344,16 @@ body {
     border: 0;
 }
 
+/* Focus styles for keyboard navigation */
 .card:focus,
-#draw-card:focus {
+.tg-button:focus {
     outline: 3px solid var(--tg-theme-link-color);
     outline-offset: 2px;
+}
+
+/* Smooth transitions for theme changes */
+body,
+.card,
+.tg-button {
+    transition: background-color 0.3s, color 0.3s;
 }
