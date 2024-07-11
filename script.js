@@ -1,10 +1,5 @@
+// At the beginning of your script.js file
 let tg = window.Telegram.WebApp;
-
-// Expand the Web App to full height
-tg.expand();
-
-// Enable closing confirmation dialog
-tg.enableClosingConfirmation();
 
 // Game state variables
 let score = 0;
@@ -12,7 +7,7 @@ let lives = 3;
 let progress = 0;
 const totalCards = 10;
 let availableEvents = [];
-let mainButton = tg.MainButton;
+let tg.MainButton = tg.MainButton;
 
 const requiredElements = ['timeline', 'current-card', 'score', 'lives', 'progress', 'placement-indicator', 'feedback'];
 for (const elementId of requiredElements) {
@@ -21,24 +16,29 @@ for (const elementId of requiredElements) {
     tg.showAlert(`Error: Required element #${elementId} not found. The game may not function correctly.`);
   }
 }
+tg.expand(); // Expand the Web App to full height
 
+// Initialize the main button
 function initializeMainButton() {
-    mainButton.setText('Draw Card');
-    mainButton.show();
-    mainButton.onClick(drawCard);
+    tg.MainButton.setText('Draw Card');
+    tg.MainButton.show();
+    tg.MainButton.onClick(drawCard);
 }
+
+// Call this function at the end of your initializeGame function
+initializeMainButton();
+
+// Enable closing confirmation dialog
+tg.enableClosingConfirmation();
 
 function updateMainButton(text, visible) {
   if (visible) {
-    mainButton.setText(text);
-    mainButton.show();
+    tg.MainButton.setText(text);
+    tg.MainButton.show();
   } else {
-    mainButton.hide();
+    tg.MainButton.hide();
   }
 }
-
-mainButton.onClick(drawCard);
-
 // Replace drawCardButton click listener with:
 updateMainButton('Draw Card', true);
 
@@ -58,7 +58,6 @@ tg.BackButton.onClick(() => {
 // DOM Elements
 const timeline = document.getElementById('timeline');
 const currentCard = document.getElementById('current-card');
-//const drawCardButton = document.getElementById('draw-card');
 const scoreElement = document.getElementById('score');
 const livesElement = document.getElementById('lives');
 const progressElement = document.getElementById('progress');
@@ -81,6 +80,7 @@ const events = [
 
 // Initialize the game
 function initializeGame() {
+    try {
     initializeMainButton();
     availableEvents = [...events];
     score = 0;
@@ -101,6 +101,10 @@ resetCurrentCard();
 initializeMainButton();
 implementTouchDragDrop();
 updateCardCache(); // Don't forget to call this
+} catch (error) {
+    console.error('Error initializing game:', error);
+    tg.showAlert('An error occurred while initializing the game. Please try again.');
+}
 }
 
 // Clear the timeline
@@ -139,25 +143,24 @@ function createEventCard(event, isCurrentCard = false) {
     card.className = 'card';
     card.setAttribute('role', 'listitem');
     card.innerHTML = `
-<div class="card-front">
-<div class="card-title">${event.name}</div>
-<div class="card-emoji">${event.emoji}</div>
-<div class="card-year">${isCurrentCard ? '' : event.year}</div>
-</div>
-${isCurrentCard ? '' : `
-<div class="card-back">
-<div class="card-notice">${event.notice}</div>
-</div>
-`}`;
+        <div class="card-inner">
+            <div class="card-front">
+                <div class="card-title">${event.name}</div>
+                <div class="card-emoji">${event.emoji}</div>
+                <div class="card-year">${isCurrentCard ? '' : event.year}</div>
+            </div>
+            ${isCurrentCard ? '' : `
+                <div class="card-back">
+                    <div class="card-notice">${event.notice}</div>
+                </div>
+            `}
+        </div>`;
 
     if (!isCurrentCard) {
-        card.addEventListener('click', function () {
-            flipCard(this);
-        });
-
-        card.addEventListener('keydown', function (e) {
+        card.addEventListener('click', () => flipCard(card));
+        card.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
-                flipCard(this);
+                flipCard(card);
             }
         });
     }
@@ -475,14 +478,15 @@ function implementTouchDragDrop() {
     currentCard.addEventListener('touchcancel', handleTouchEnd);
   
     function handleTouchStart(e) {
-      if (!currentCard.draggable) return;
-      isDragging = true;
-      e.preventDefault();
-      const touch = e.touches[0];
-      startX = touch.clientX - currentCard.offsetLeft;
-      startY = touch.clientY - currentCard.offsetTop;
-      currentCard.style.zIndex = '1000';
+        if (!currentCard.draggable) return;
+        isDragging = true;
+        const touch = e.touches[0];
+        startX = touch.clientX - currentCard.offsetLeft;
+        startY = touch.clientY - currentCard.offsetTop;
+        currentCard.style.zIndex = '1000';
+        e.preventDefault(); // Prevent default only after checks
     }
+    
   
     function handleTouchMove(e) {
       if (!isDragging) return;
