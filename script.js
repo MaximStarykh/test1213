@@ -20,9 +20,13 @@ tg.expand(); // Expand the Web App to full height
 
 // Initialize the main button
 function initializeMainButton() {
+    console.log('Initializing main button');
     tg.MainButton.setText('Draw Card');
     tg.MainButton.show();
-    tg.MainButton.onClick(drawCard);
+    tg.MainButton.onClick(() => {
+        console.log('Main button clicked');
+        drawCard();
+    });
 }
 
 // Call this function at the end of your initializeGame function
@@ -39,7 +43,7 @@ function updateMainButton(text, visible) {
     tg.MainButton.hide();
   }
 }
-// Replace drawCardButton click listener with:
+
 updateMainButton('Draw Card', true);
 
 // In updateGameState function:
@@ -81,30 +85,32 @@ const events = [
 // Initialize the game
 function initializeGame() {
     try {
-    initializeMainButton();
-    availableEvents = [...events];
-    score = 0;
-    lives = 3;
-    progress = 0;
-    updateGameInfo();
-    clearTimeline();
-// Generate initial card
-const randomIndex = Math.floor(Math.random() * availableEvents.length);
-const initialEvent = availableEvents.splice(randomIndex, 1)[0];
-const initialCard = createEventCard(initialEvent);
-initialCard.querySelector('.card-year').style.display = 'block';
-timeline.appendChild(initialCard);
+        console.log('Initializing game');
+        initializeMainButton();
+        availableEvents = [...events];
+        score = 0;
+        lives = 3;
+        progress = 0;
+        updateGameInfo();
+        clearTimeline();
 
-progress++;
-updateGameInfo();
-resetCurrentCard();
-initializeMainButton();
-implementTouchDragDrop();
-updateCardCache(); // Don't forget to call this
-} catch (error) {
-    console.error('Error initializing game:', error);
-    tg.showAlert('An error occurred while initializing the game. Please try again.');
-}
+        // Generate initial card
+        const randomIndex = Math.floor(Math.random() * availableEvents.length);
+        const initialEvent = availableEvents.splice(randomIndex, 1)[0];
+        const initialCard = createEventCard(initialEvent);
+        initialCard.querySelector('.card-year').style.display = 'block';
+        timeline.appendChild(initialCard);
+
+        progress++;
+        updateGameInfo();
+        resetCurrentCard();
+        implementTouchDragDrop();
+        updateCardCache();
+        console.log('Game initialized successfully');
+    } catch (error) {
+        console.error('Error initializing game:', error);
+        tg.showAlert('An error occurred while initializing the game. Please try again.');
+    }
 }
 
 // Clear the timeline
@@ -124,17 +130,29 @@ function updateGameInfo() {
 
 // Draw a new card
 function drawCard() {
-    if (availableEvents.length === 0) {
-        endGame();
-        return;
+    try {
+        console.log('Drawing card');
+        if (availableEvents.length === 0) {
+            console.log('No more events available');
+            endGame();
+            return;
+        }
+
+        const randomIndex = Math.floor(Math.random() * availableEvents.length);
+        const currentEvent = availableEvents.splice(randomIndex, 1)[0];
+
+        console.log('Current event:', currentEvent);
+
+        currentCard.innerHTML = createEventCard(currentEvent, true).innerHTML;
+        currentCard.draggable = true;
+        currentCard.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
+        
+        // Hide the main button after drawing a card
+        tg.MainButton.hide();
+    } catch (error) {
+        console.error('Error in drawCard function:', error);
+        tg.showAlert('An error occurred while drawing a card. Please try again.');
     }
-
-    const randomIndex = Math.floor(Math.random() * availableEvents.length);
-    const currentEvent = availableEvents.splice(randomIndex, 1)[0];
-
-    currentCard.innerHTML = createEventCard(currentEvent, true).innerHTML;
-    currentCard.draggable = true;
-    currentCard.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
 }
 
 // Create a new event card
@@ -227,35 +245,42 @@ function createTouchDropEvent(touch) {
 
 // Handle drop event
 function handleDrop(e) {
-e.preventDefault();
-updateMainButton('Place Card', true);
-timeline.appendChild(newCard);
-updateCardCache();
-const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
-if (id === 'current-card') {
-const currentEvent = events.find(event => event.name === currentCard.querySelector('.card-title').textContent);
-const newCard = createEventCard(currentEvent);
-const afterElement = getDragAfterElement(timeline, e.clientX);
+    try {
+        e.preventDefault();
+        console.log('Handling drop event');
+        const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
+        if (id === 'current-card') {
+            const currentEvent = events.find(event => event.name === currentCard.querySelector('.card-title').textContent);
+            const newCard = createEventCard(currentEvent);
+            const afterElement = getDragAfterElement(timeline, e.clientX);
 
-if (afterElement) {
-    timeline.insertBefore(newCard, afterElement);
-} else {
-    timeline.appendChild(newCard);
-}
+            if (afterElement) {
+                timeline.insertBefore(newCard, afterElement);
+            } else {
+                timeline.appendChild(newCard);
+            }
 
-const isCorrect = validateCardPlacement(newCard);
-if (isCorrect) {
-    newCard.querySelector('.card-year').style.display = 'block';
-    updateGameState(true);
-} else {
-    timeline.removeChild(newCard);
-    updateGameState(false);
-}
-resetCurrentCard();
-}
-placementIndicator.style.display = 'none';
-resetCardPositions();
-updateCardCache();
+            const isCorrect = validateCardPlacement(newCard);
+            if (isCorrect) {
+                newCard.querySelector('.card-year').style.display = 'block';
+                updateGameState(true);
+            } else {
+                timeline.removeChild(newCard);
+                updateGameState(false);
+            }
+            resetCurrentCard();
+        }
+        placementIndicator.style.display = 'none';
+        resetCardPositions();
+        updateCardCache();
+        
+        // Show the main button after dropping a card
+        tg.MainButton.setText('Draw Card');
+        tg.MainButton.show();
+    } catch (error) {
+        console.error('Error in handleDrop function:', error);
+        tg.showAlert('An error occurred while placing the card. Please try again.');
+    }
 }
 
 // Get the element to insert the dragged card after
@@ -328,25 +353,32 @@ function validateCardPlacement(newCard) {
 
 // Update game state after card placement
 function updateGameState(isCorrect) {
-    if (isCorrect) {
-        showFeedback(true);
-        score += 10;
-    } else {
-        showFeedback(false);
-        lives--;
-        if (lives <= 0) {
-            endGame();
-            return;
+    try {
+        console.log('Updating game state');
+        if (isCorrect) {
+            showFeedback(true);
+            score += 10;
+        } else {
+            showFeedback(false);
+            lives--;
+            if (lives <= 0) {
+                endGame();
+                return;
+            }
         }
-    }
 
-    progress++;
-    updateGameInfo();
+        progress++;
+        updateGameInfo();
 
-    if (progress === totalCards) {
-        endGame();
-    } else {
-        updateMainButton('Draw Card', true);
+        if (progress === totalCards) {
+            endGame();
+        } else {
+            tg.MainButton.setText('Draw Card');
+            tg.MainButton.show();
+        }
+    } catch (error) {
+        console.error('Error in updateGameState function:', error);
+        tg.showAlert('An error occurred while updating the game state. Please try again.');
     }
 }
 
@@ -548,3 +580,14 @@ timeline.addEventListener('drop', handleDrop);
 // Initialize the game
 initializeGame();
 implementTouchDragDrop();
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded and parsed');
+    if (window.Telegram && window.Telegram.WebApp) {
+        console.log('Telegram WebApp found, initializing game');
+        initializeGame();
+    } else {
+        console.error('Telegram WebApp not found');
+        alert('Error: Telegram WebApp not found. The game may not function correctly.');
+    }
+});
