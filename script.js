@@ -1,5 +1,10 @@
 // At the beginning of your script.js file
 let tg = window.Telegram.WebApp;
+if (!tg) {
+  console.error("Telegram Web App is not available");
+  // Implement fallback behavior or show an error message
+  alert("This app requires Telegram Web App to function properly.");
+}
 if (window.Telegram && window.Telegram.WebApp) {
     let tg = window.Telegram.WebApp;
     tg.ready();
@@ -87,6 +92,9 @@ function initializeGame() {
       updateGameInfo();
       clearTimeline();
       
+      const timeline = document.getElementById('timeline');
+      if (!timeline) throw new Error("Timeline element not found");
+  
       // Generate initial card
       const randomIndex = Math.floor(Math.random() * availableEvents.length);
       const initialEvent = availableEvents.splice(randomIndex, 1)[0];
@@ -98,14 +106,18 @@ function initializeGame() {
       updateGameInfo();
       resetCurrentCard();
       initializeMainButton();
-      implementTouchDragDrop();
-      updateCardCache(); // Don't forget to call this
+      updateCardCache();
       console.log("Game initialized successfully");
     } catch (error) {
       console.error('Error initializing game:', error);
       tg.showAlert('An error occurred while initializing the game. Please try again.');
     }
   }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeGame();
+    implementTouchDragDrop();
+  });
 
 // Clear the timeline
 function clearTimeline() {
@@ -117,9 +129,17 @@ function clearTimeline() {
 
 // Update game information display
 function updateGameInfo() {
-    scoreElement.textContent = score;
-    livesElement.innerHTML = '❤️'.repeat(lives) + `<span class="visually-hidden">${lives} lives remaining</span>`;
-    progressElement.textContent = `${progress}/${totalCards}`;
+    const scoreElement = document.getElementById('score');
+    const livesElement = document.getElementById('lives');
+    const progressElement = document.getElementById('progress');
+  
+    if (scoreElement && livesElement && progressElement) {
+      scoreElement.textContent = score;
+      livesElement.innerHTML = '❤️'.repeat(lives) + `<span class="visually-hidden">${lives} lives remaining</span>`;
+      progressElement.textContent = `${progress}/${totalCards}`;
+    } else {
+      console.error("One or more game info elements not found");
+    }
   }
 
 // Draw a new card
@@ -135,10 +155,16 @@ function drawCard() {
       const randomIndex = Math.floor(Math.random() * availableEvents.length);
       const currentEvent = availableEvents.splice(randomIndex, 1)[0];
   
-      currentCard.innerHTML = createEventCard(currentEvent, true).innerHTML;
-      currentCard.draggable = true;
-      currentCard.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
-      console.log("Card drawn successfully");
+      // Check if currentCard exists before using it
+      const currentCardElement = document.getElementById('current-card');
+      if (currentCardElement) {
+        currentCardElement.innerHTML = createEventCard(currentEvent, true).innerHTML;
+        currentCardElement.draggable = true;
+        currentCardElement.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
+        console.log("Card drawn successfully");
+      } else {
+        throw new Error("Current card element not found");
+      }
     } catch (error) {
       console.error("Error drawing card:", error);
       tg.showAlert('An error occurred while drawing a card. Please try again.');
@@ -229,36 +255,43 @@ function createTouchDropEvent(touch) {
 
 // Handle drop event
 function handleDrop(e) {
-e.preventDefault();
-updateMainButton('Place Card', true);
-timeline.appendChild(newCard);
-updateCardCache();
-const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
-if (id === 'current-card') {
-const currentEvent = events.find(event => event.name === currentCard.querySelector('.card-title').textContent);
-const newCard = createEventCard(currentEvent);
-const afterElement = getDragAfterElement(timeline, e.clientX);
-
-if (afterElement) {
-    timeline.insertBefore(newCard, afterElement);
-} else {
-    timeline.appendChild(newCard);
-}
-
-const isCorrect = validateCardPlacement(newCard);
-if (isCorrect) {
-    newCard.querySelector('.card-year').style.display = 'block';
-    updateGameState(true);
-} else {
-    timeline.removeChild(newCard);
-    updateGameState(false);
-}
-resetCurrentCard();
-}
-placementIndicator.style.display = 'none';
-resetCardPositions();
-updateCardCache();
-}
+    try {
+      e.preventDefault();
+      updateMainButton('Place Card', true);
+      
+      const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
+      if (id === 'current-card') {
+        const currentCardElement = document.getElementById('current-card');
+        if (!currentCardElement) throw new Error("Current card element not found");
+  
+        const currentEvent = events.find(event => event.name === currentCardElement.querySelector('.card-title').textContent);
+        const newCard = createEventCard(currentEvent);
+        const afterElement = getDragAfterElement(timeline, e.clientX);
+  
+        if (afterElement) {
+          timeline.insertBefore(newCard, afterElement);
+        } else {
+          timeline.appendChild(newCard);
+        }
+  
+        const isCorrect = validateCardPlacement(newCard);
+        if (isCorrect) {
+          newCard.querySelector('.card-year').style.display = 'block';
+          updateGameState(true);
+        } else {
+          timeline.removeChild(newCard);
+          updateGameState(false);
+        }
+        resetCurrentCard();
+      }
+      placementIndicator.style.display = 'none';
+      resetCardPositions();
+      updateCardCache();
+    } catch (error) {
+      console.error("Error handling drop:", error);
+      tg.showAlert('An error occurred while placing the card. Please try again.');
+    }
+  }
 
 // Get the element to insert the dragged card after
 function getDragAfterElement(container, x) {
