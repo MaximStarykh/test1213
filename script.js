@@ -13,14 +13,6 @@ let progress = 0;
 const totalCards = 10;
 let availableEvents = []
 
-const requiredElements = ['timeline', 'current-card', 'score', 'lives', 'progress', 'placement-indicator', 'feedback'];
-for (const elementId of requiredElements) {
-  if (!document.getElementById(elementId)) {
-    console.error(`Required element #${elementId} not found`);
-    tg.showAlert(`Error: Required element #${elementId} not found. The game may not function correctly.`);
-  }
-}
-
 // Initialize the main button
 function initializeMainButton() {
     tg.MainButton.setText('Draw Card');
@@ -68,25 +60,7 @@ function setupEventListeners() {
     implementTouchDragDrop();
   });
 
-  function checkRequiredElements() {
-    const requiredElements = ['timeline', 'current-card', 'score', 'lives', 'progress', 'placement-indicator', 'feedback'];
-    for (const elementId of requiredElements) {
-      if (!document.getElementById(elementId)) {
-        console.error(`Required element #${elementId} not found`);
-        tg.showAlert(`Error: Required element #${elementId} not found. The game may not function correctly.`);
-        return false;
-      }
-    }
-    return true;
-  }
   
-  // Call this function before initializing the game
-  if (checkRequiredElements()) {
-    initializeGame();
-  } else {
-    console.error("Game initialization aborted due to missing elements");
-  }
-
 // Game events data
 const events = [
     { name: "Birth of Christ", year: 0, emoji: "👶", notice: "Marks the beginning of the Christian era. Celebrated as Christmas worldwide." },
