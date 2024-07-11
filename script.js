@@ -217,12 +217,6 @@ function handleDragStart(e) {
     currentCard.style.opacity = '0.5';
   }
 
-  const timeline = document.getElementById('timeline');
-if (!timeline) {
-  console.error('Timeline element not found');
-  return;
-}
-
 // Handle drag end event
 function handleDragEnd() {
     currentCard.style.opacity = '1';
