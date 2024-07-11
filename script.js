@@ -22,6 +22,12 @@ for (const elementId of requiredElements) {
   }
 }
 
+function initializeMainButton() {
+    mainButton.setText('Draw Card');
+    mainButton.show();
+    mainButton.onClick(drawCard);
+}
+
 function updateMainButton(text, visible) {
   if (visible) {
     mainButton.setText(text);
@@ -75,22 +81,26 @@ const events = [
 
 // Initialize the game
 function initializeGame() {
+    initializeMainButton();
     availableEvents = [...events];
     score = 0;
     lives = 3;
     progress = 0;
     updateGameInfo();
     clearTimeline();
-    const randomIndex = Math.floor(Math.random() * availableEvents.length);
-    const initialEvent = availableEvents.splice(randomIndex, 1)[0];
-    const initialCard = createEventCard(initialEvent);
-    initialCard.querySelector('.card-year').style.display = 'block';
-    timeline.appendChild(initialCard);
-    progress++;
-    updateGameInfo();
-    resetCurrentCard();
-    updateMainButton('Draw Card', true);
-    implementTouchDragDrop();
+// Generate initial card
+const randomIndex = Math.floor(Math.random() * availableEvents.length);
+const initialEvent = availableEvents.splice(randomIndex, 1)[0];
+const initialCard = createEventCard(initialEvent);
+initialCard.querySelector('.card-year').style.display = 'block';
+timeline.appendChild(initialCard);
+
+progress++;
+updateGameInfo();
+resetCurrentCard();
+initializeMainButton();
+implementTouchDragDrop();
+updateCardCache(); // Don't forget to call this
 }
 
 // Clear the timeline
@@ -110,7 +120,6 @@ function updateGameInfo() {
 
 // Draw a new card
 function drawCard() {
-    updateMainButton('Place Card', true);
     if (availableEvents.length === 0) {
         endGame();
         return;
@@ -120,8 +129,6 @@ function drawCard() {
     const currentEvent = availableEvents.splice(randomIndex, 1)[0];
 
     currentCard.innerHTML = createEventCard(currentEvent, true).innerHTML;
-
-updateMainButton('Draw Card', false);
     currentCard.draggable = true;
     currentCard.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
 }
@@ -245,6 +252,7 @@ resetCurrentCard();
 }
 placementIndicator.style.display = 'none';
 resetCardPositions();
+updateCardCache();
 }
 
 // Get the element to insert the dragged card after
