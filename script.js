@@ -90,16 +90,16 @@ function createEventCard(event, isCurrentCard = false) {
     card.className = 'card';
     card.setAttribute('role', 'listitem');
     card.innerHTML = `
-        <div class="card-front">
-            <div class="card-title">${event.name}</div>
-            <div class="card-emoji">${event.emoji}</div>
-            <div class="card-year">${isCurrentCard ? '' : event.year}</div>
-        </div>
-        ${isCurrentCard ? '' : `
-        <div class="card-back">
-            <div class="card-notice">${event.notice}</div>
-        </div>
-        `}`;
+<div class="card-front">
+<div class="card-title">${event.name}</div>
+<div class="card-emoji">${event.emoji}</div>
+<div class="card-year">${isCurrentCard ? '' : event.year}</div>
+</div>
+${isCurrentCard ? '' : `
+<div class="card-back">
+<div class="card-notice">${event.notice}</div>
+</div>
+`}`;
 
     if (!isCurrentCard) {
         card.addEventListener('click', function () {
@@ -126,9 +126,9 @@ function flipCard(card) {
 
 // Handle drag start event
 function handleDragStart(e) {
-    if (e.type === 'touchstart') return; // Ignore touch events here
-    e.dataTransfer.setData('text/plain', e.target.id);
-    setTimeout(() => (currentCard.style.opacity = '0.5'), 0);
+if (e.type === 'touchstart') return; // Ignore touch events here
+e.dataTransfer.setData('text/plain', e.target.id);
+setTimeout(() => (currentCard.style.opacity = '0.5'), 0);
 }
 
 // Handle drag end event
@@ -158,31 +158,44 @@ function handleDragLeave() {
 
 // Handle drop event
 function handleDrop(e) {
-    e.preventDefault();
-    const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
-    if (id === 'current-card') {
-        const currentEvent = events.find(event => event.name === currentCard.querySelector('.card-title').textContent);
-        const newCard = createEventCard(currentEvent);
-        const afterElement = getDragAfterElement(timeline, e.clientX);
+e.preventDefault();
+const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
+if (id === 'current-card') {
+const currentEvent = events.find(event => event.name === currentCard.querySelector('.card-title').textContent);
+const newCard = createEventCard(currentEvent);
+const afterElement = getDragAfterElement(timeline, e.clientX);
 
-        if (afterElement) {
-            timeline.insertBefore(newCard, afterElement);
-        } else {
-            timeline.appendChild(newCard);
-        }
+if (afterElement) {
+    timeline.insertBefore(newCard, afterElement);
+} else {
+    timeline.appendChild(newCard);
+}
 
-        const isCorrect = validateCardPlacement(newCard);
-        if (isCorrect) {
-            newCard.querySelector('.card-year').style.display = 'block';
-            updateGameState(true);
-        } else {
-            timeline.removeChild(newCard);
-            updateGameState(false);
-        }
-        resetCurrentCard();
-    }
-    placementIndicator.style.display = 'none';
-    resetCardPositions();
+const isCorrect = validateCardPlacement(newCard);
+if (isCorrect) {
+    newCard.querySelector('.card-year').style.display = 'block';
+    updateGameState(true);
+} else {
+    timeline.removeChild(newCard);
+    updateGameState(false);
+}
+resetCurrentCard();
+}
+placementIndicator.style.display = 'none';
+resetCardPositions();
+}
+
+function getDragAfterElement(container, x) {
+const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
+return draggableElements.reduce((closest, child) => {
+const box = child.getBoundingClientRect();
+const offset = x - box.left - box.width / 2;
+if (offset < 0 && offset > closest.offset) {
+    return { offset: offset, element: child };
+} else {
+    return closest;
+}
+}, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
 // Get the element to insert the dragged card after
@@ -273,16 +286,16 @@ function updateGameState(isCorrect) {
 // Reset current card
 function resetCurrentCard() {
     currentCard.innerHTML = `
-        <div class="card-inner">
-            <div class="card-front">
-                <div class="card-title">Draw a card</div>
-                <div class="card-emoji">🎴</div>
-                <div class="card-year">to continue!</div>
-            </div>
-            <div class="card-back">
-                <div class="card-notice">Draw a card to continue the game!</div>
-            </div>
-        </div>`;
+<div class="card-inner">
+    <div class="card-front">
+        <div class="card-title">Draw a card</div>
+        <div class="card-emoji">🎴</div>
+        <div class="card-year">to continue!</div>
+    </div>
+    <div class="card-back">
+        <div class="card-notice">Draw a card to continue the game!</div>
+    </div>
+</div>`;
     currentCard.draggable = false;
     currentCard.setAttribute('aria-label', 'Draw a new card to continue the game');
 }
@@ -316,76 +329,82 @@ function restartGame() {
 
 // Implement touch drag and drop functionality
 function implementTouchDragDrop() {
-    let isDragging = false;
-    let startX, startY;
-    let originalX, originalY;
+let isDragging = false;
+let startX, startY;
+let originalX, originalY;
 
-    currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd);
+currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
+document.addEventListener('touchmove', handleTouchMove, { passive: false });
+document.addEventListener('touchend', handleTouchEnd);
 
-    function handleTouchStart(e) {
-        if (!currentCard.draggable) return;
-        isDragging = true;
-        e.preventDefault(); // Prevent scrolling when starting drag
-        const touch = e.touches[0];
-        startX = touch.clientX - currentCard.offsetLeft;
-        startY = touch.clientY - currentCard.offsetTop;
-        originalX = currentCard.offsetLeft;
-        originalY = currentCard.offsetTop;
-        currentCard.style.zIndex = '1000';
+function handleTouchStart(e) {
+if (!currentCard.draggable) return;
+isDragging = true;
+e.preventDefault(); // Prevent scrolling when starting drag
+const touch = e.touches[0];
+startX = touch.clientX - currentCard.offsetLeft;
+startY = touch.clientY - currentCard.offsetTop;
+originalX = currentCard.offsetLeft;
+originalY = currentCard.offsetTop;
+currentCard.style.zIndex = '1000';
+}
+
+function handleTouchMove(e) {
+if (!isDragging) return;
+e.preventDefault(); // Prevent scrolling during drag
+const touch = e.touches[0];
+let newX = touch.clientX - startX;
+let newY = touch.clientY - startY;
+
+currentCard.style.position = 'fixed';
+currentCard.style.left = newX + 'px';
+currentCard.style.top = newY + 'px';
+
+const afterElement = getDragAfterElement(timeline, touch.clientX);
+updateCardPositions(afterElement);
+
+placementIndicator.style.display = 'block';
+if (afterElement) {
+    timeline.insertBefore(placementIndicator, afterElement);
+} else {
+    timeline.appendChild(placementIndicator);
+}
+}
+
+function handleTouchEnd(e) {
+if (!isDragging) return;
+isDragging = false;
+currentCard.style.zIndex = '';
+placementIndicator.style.display = 'none';
+
+const touch = e.changedTouches[0];
+const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
+if (timeline.contains(dropTarget)) {
+    handleDrop(createTouchDropEvent(touch));
+} else {
+    resetCurrentCardPosition();
+}
+
+resetCardPositions();
+}
+
+function createTouchDropEvent(touch) {
+return {
+    preventDefault: () => {},
+    clientX: touch.clientX,
+    clientY: touch.clientY,
+    dataTransfer: {
+        getData: () => 'current-card'
     }
+};
+}
 
-    function handleTouchMove(e) {
-        if (!isDragging) return;
-        e.preventDefault(); // Prevent scrolling during drag
-        const touch = e.touches[0];
-        let newX = touch.clientX - startX;
-        let newY = touch.clientY - startY;
-
-        currentCard.style.position = 'fixed';
-        currentCard.style.left = newX + 'px';
-        currentCard.style.top = newY + 'px';
-
-        const afterElement = getDragAfterElement(timeline, touch.clientX);
-        updateCardPositions(afterElement);
-
-        placementIndicator.style.display = 'block';
-        if (afterElement) {
-            timeline.insertBefore(placementIndicator, afterElement);
-        } else {
-            timeline.appendChild(placementIndicator);
-        }
-    }
-
-    function handleTouchEnd(e) {
-        if (!isDragging) return;
-        isDragging = false;
-        currentCard.style.zIndex = '';
-        placementIndicator.style.display = 'none';
-        
-        const touch = e.changedTouches[0];
-        const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-        
-        if (timeline.contains(dropTarget)) {
-            handleDrop(createTouchDropEvent(touch));
-        } else {
-            resetCurrentCardPosition();
-        }
-        
-        resetCardPositions();
-    }
-
-    function createTouchDropEvent(touch) {
-        return {
-            preventDefault: () => {},
-            clientX: touch.clientX,
-            clientY: touch.clientY,
-            dataTransfer: {
-                getData: () => 'current-card'
-            }
-        };
-    }
+function resetCurrentCardPosition() {
+currentCard.style.position = 'static';
+currentCard.style.left = '';
+currentCard.style.top = '';
+}
 }
 
 // Reset current card position
@@ -403,6 +422,8 @@ timeline.addEventListener('dragover', handleDragOver);
 timeline.addEventListener('dragleave', handleDragLeave);
 timeline.addEventListener('drop', handleDrop);
 restartGameButton.addEventListener('click', restartGame);
+
+
 
 // Initialize the game
 initializeGame();

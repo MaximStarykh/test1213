@@ -29,7 +29,7 @@ body {
     line-height: 1.6;
 }
 
-/* Game Container Layout */
+/* Improved Game Container Layout */
 #game-container {
     display: flex;
     flex-direction: column;
@@ -40,7 +40,7 @@ body {
     box-sizing: border-box;
 }
 
-/* Game Info Section */
+/* Enhanced Game Info Section */
 #game-info {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -55,7 +55,7 @@ body {
     box-shadow: var(--card-shadow);
 }
 
-#game-info > div {
+#game-info>div {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -73,7 +73,7 @@ body {
     gap: 5px;
 }
 
-/* Timeline Section */
+/* Improved Timeline Section */
 #timeline {
     flex-grow: 1;
     display: flex;
@@ -95,7 +95,7 @@ body {
     justify-content: center;
 }
 
-/* Card Styles */
+/* Enhanced Card Styles */
 .card {
     flex-shrink: 0;
     scroll-snap-align: center;
@@ -109,6 +109,7 @@ body {
     perspective: 1000px;
 }
 
+
 .card-inner {
     position: relative;
     width: 100%;
@@ -117,6 +118,7 @@ body {
     transition: transform 0.6s;
     transform-style: preserve-3d;
 }
+
 
 .card.flipped {
     transform: rotateY(180deg);
@@ -157,6 +159,7 @@ body {
     text-align: center;
 }
 
+
 .card-title {
     font-size: 1rem;
     font-weight: bold;
@@ -169,6 +172,7 @@ body {
     white-space: normal;
     line-height: 1.2;
     max-height: 3.6em;
+    /* Allows for up to 3 lines */
     overflow: hidden;
 }
 
@@ -186,6 +190,7 @@ body {
     margin-bottom: 5px;
     color: #4CAF50;
     margin-top: auto;
+
 }
 
 .card-notice {
@@ -220,7 +225,7 @@ body {
     cursor: grabbing;
 }
 
-/* Draw Card Button Styles */
+/* Improved Draw Card Button Styles */
 #draw-card {
     background-color: var(--secondary-color);
     color: var(--primary-color);
@@ -268,7 +273,7 @@ body {
     animation: pulseRed 0.5s;
 }
 
-/* Feedback Styles */
+/* Improved Feedback Styles */
 #feedback {
     position: fixed;
     right: 20px;
@@ -321,18 +326,34 @@ body {
 
 /* Keyframe Animations */
 @keyframes pulseGreen {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 @keyframes pulseRed {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
-/* Media Queries for Responsiveness */
+/* Improved Media Queries for Responsiveness */
 @media (max-width: 768px) {
     #game-info {
         font-size: 0.9rem;
@@ -377,6 +398,8 @@ body {
         font-size: 1rem;
         width: 150px;
     }
+
+
 }
 
 /* Accessibility Improvements */
