@@ -546,8 +546,8 @@ function resetCurrentCardPosition() {
 }
 
 // Event Listeners
-currentCard.addEventListener('dragstart', handleDragStart);
-currentCard.addEventListener('dragend', handleDragEnd);
+//currentCard.addEventListener('dragstart', handleDragStart);
+//currentCard.addEventListener('dragend', handleDragEnd);
 timeline.addEventListener('dragover', handleDragOver);
 timeline.addEventListener('dragleave', handleDragLeave);
 timeline.addEventListener('drop', handleDrop);
