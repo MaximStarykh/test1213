@@ -18,34 +18,14 @@ let progress = 0;
 const totalCards = 10;
 let availableEvents = []
 
-// Initialize the main button
-function initializeMainButton() {
-    tg.MainButton.setText('Draw Card');
-    tg.MainButton.show();
-    tg.MainButton.onClick(drawCard);
-}
-  
-
-// Enable closing confirmation dialog
-tg.enableClosingConfirmation();
-
-function updateMainButton(text, visible) {
-  if (visible) {
-    tg.MainButton.setText(text);
-    tg.MainButton.show();
-  } else {
-    tg.MainButton.hide();
-  }
-}
-// Replace drawCardButton click listener with:
-updateMainButton('Draw Card', true);
-
-
 // DOM Elements
 function setupEventListeners() {
     console.log("Setting up event listeners...");
     const currentCard = document.getElementById('current-card');
     const timeline = document.getElementById('timeline');
+    const feedback = document.getElementById('feedback');
+    const placementIndicator = document.createElement('div');
+    placementIndicator.className = 'placement-indicator';
     
     if (currentCard && timeline) {
       currentCard.addEventListener('dragstart', handleDragStart);
@@ -64,6 +44,28 @@ function setupEventListeners() {
     setupEventListeners();
     implementTouchDragDrop();
   });
+
+// Initialize the main button
+function initializeMainButton() {
+    tg.MainButton.setText('Draw Card');
+    tg.MainButton.show();
+    tg.MainButton.onClick(drawCard);
+}
+  
+// Enable closing confirmation dialog
+tg.enableClosingConfirmation();
+
+function updateMainButton(text, visible) {
+  if (visible) {
+    tg.MainButton.setText(text);
+    tg.MainButton.show();
+  } else {
+    tg.MainButton.hide();
+  }
+}
+// Replace drawCardButton click listener with:
+updateMainButton('Draw Card', true);
+
 
   
 // Game events data
@@ -155,16 +157,14 @@ function drawCard() {
       const randomIndex = Math.floor(Math.random() * availableEvents.length);
       const currentEvent = availableEvents.splice(randomIndex, 1)[0];
   
-      // Check if currentCard exists before using it
-      const currentCardElement = document.getElementById('current-card');
-      if (currentCardElement) {
-        currentCardElement.innerHTML = createEventCard(currentEvent, true).innerHTML;
-        currentCardElement.draggable = true;
-        currentCardElement.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
-        console.log("Card drawn successfully");
-      } else {
+      if (!currentCard) {
         throw new Error("Current card element not found");
       }
+  
+      currentCard.innerHTML = createEventCard(currentEvent, true).innerHTML;
+      currentCard.draggable = true;
+      currentCard.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
+      console.log("Card drawn successfully");
     } catch (error) {
       console.error("Error drawing card:", error);
       tg.showAlert('An error occurred while drawing a card. Please try again.');
