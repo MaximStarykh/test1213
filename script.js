@@ -19,30 +19,23 @@ const totalCards = 10;
 let availableEvents = []
 
 // DOM Elements
-function setupEventListeners() {
-    console.log("Setting up event listeners...");
-    const currentCard = document.getElementById('current-card');
-    const timeline = document.getElementById('timeline');
-    const feedback = document.getElementById('feedback');
-    const placementIndicator = document.createElement('div');
-    placementIndicator.className = 'placement-indicator';
-    
-    if (currentCard && timeline) {
-      currentCard.addEventListener('dragstart', handleDragStart);
-      currentCard.addEventListener('dragend', handleDragEnd);
-      timeline.addEventListener('dragover', handleDragOver);
-      timeline.addEventListener('dragleave', handleDragLeave);
-      timeline.addEventListener('drop', handleDrop);
-      console.log("Event listeners set up successfully");
-    } else {
-      console.error("Required elements not found for event listeners");
-    }
-  }
+let currentCard, timeline, feedback, placementIndicator;
+
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+      currentCard = document.getElementById('current-card');
+      timeline = document.getElementById('timeline');
+      feedback = document.getElementById('feedback');
+      placementIndicator = document.createElement('div');
+      placementIndicator.className = 'placement-indicator';
   
-  document.addEventListener('DOMContentLoaded', function() {
-    initializeGame();
-    setupEventListeners();
-    implementTouchDragDrop();
+      initializeGame();
+      setupEventListeners();
+      implementTouchDragDrop();
+    } catch (error) {
+      console.error("Error initializing game:", error);
+      tg.showAlert('An error occurred while initializing the game. Please try again.');
+    }
   });
 
 // Initialize the main button
@@ -116,18 +109,17 @@ function initializeGame() {
     }
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    initializeGame();
-    implementTouchDragDrop();
-  });
-
 // Clear the timeline
 function clearTimeline() {
-    while (timeline.firstChild) {
+    if (timeline && placementIndicator) {
+      while (timeline.firstChild) {
         timeline.removeChild(timeline.firstChild);
+      }
+      timeline.appendChild(placementIndicator);
+    } else {
+      console.error("Timeline or placementIndicator not found");
     }
-    timeline.appendChild(placementIndicator);
-}
+  }
 
 // Update game information display
 function updateGameInfo() {
@@ -585,13 +577,3 @@ timeline.addEventListener('dragover', handleDragOver);
 timeline.addEventListener('dragleave', handleDragLeave);
 timeline.addEventListener('drop', handleDrop);
 
-
-
-// Initialize the game
-initializeGame();
-implementTouchDragDrop();
-
-  } else {
-    console.error("Telegram Web App is not available");
-    // Implement fallback behavior or show an error message
-  }
