@@ -577,3 +577,8 @@ timeline.addEventListener('dragover', handleDragOver);
 timeline.addEventListener('dragleave', handleDragLeave);
 timeline.addEventListener('drop', handleDrop);
 
+
+  } else {
+    console.error("Telegram Web App is not available");
+    // Implement fallback behavior or show an error message
+  }
