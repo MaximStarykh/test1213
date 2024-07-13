@@ -1,5 +1,13 @@
-// At the beginning of your script.js file
+(function() {// At the beginning of your script.js file
 let tg = window.Telegram.WebApp;
+let currentCard, timeline, feedback, placementIndicator;
+// Game state variables
+
+let score = 0;
+let lives = 3;
+let progress = 0;
+const totalCards = 10;
+let availableEvents = [];
 if (!tg) {
   console.error("Telegram Web App is not available");
   // Implement fallback behavior or show an error message
@@ -11,16 +19,10 @@ if (window.Telegram && window.Telegram.WebApp) {
     tg.expand(); // Expand the Web App to full height
     console.log("Telegram Web App initialized");
 
-// Game state variables
-let score = 0;
-let lives = 3;
-let progress = 0;
-const totalCards = 10;
-let availableEvents = []
+
 
 // DOM Elements
 
-let currentCard, timeline, feedback, placementIndicator;
 function initializeDOMElements() {
     currentCard = document.getElementById('current-card');
     timeline = document.getElementById('timeline');
@@ -33,26 +35,21 @@ function initializeDOMElements() {
     }
   }
   function setupEventListeners() {
-    console.log("Setting up event listeners...");
     if (!currentCard || !timeline) {
-      try {
-        initializeDOMElements();
-      } catch (error) {
-        console.error("Failed to initialize DOM elements:", error);
-        return;
-      }
+      console.error("Required elements not found for event listeners");
+      return;
     }
   
-    if (currentCard && timeline) {
-      currentCard.addEventListener('dragstart', handleDragStart);
-      currentCard.addEventListener('dragend', handleDragEnd);
-      timeline.addEventListener('dragover', handleDragOver);
-      timeline.addEventListener('dragleave', handleDragLeave);
-      timeline.addEventListener('drop', handleDrop);
-      console.log("Event listeners set up successfully");
-    } else {
-      console.error("Required elements not found for event listeners");
-    }
+    currentCard.addEventListener('dragstart', handleDragStart);
+    currentCard.addEventListener('dragend', handleDragEnd);
+    timeline.addEventListener('dragover', handleDragOver);
+    timeline.addEventListener('dragleave', handleDragLeave);
+    timeline.addEventListener('drop', handleDrop);
+  
+    tg.onEvent('viewportChanged', updateLayout);
+    window.addEventListener('resize', updateLayout);
+  
+    console.log("Event listeners set up successfully");
   }
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -110,36 +107,38 @@ const events = [
 
 // Initialize the game
 function initializeGame() {
-    try {
-      console.log("Initializing game...");
-      initializeMainButton();
-      availableEvents = [...events];
-      score = 0;
-      lives = 3;
-      progress = 0;
-      updateGameInfo();
-      clearTimeline();
-      
-      const timeline = document.getElementById('timeline');
-      if (!timeline) throw new Error("Timeline element not found");
-  
-      // Generate initial card
-      const randomIndex = Math.floor(Math.random() * availableEvents.length);
-      const initialEvent = availableEvents.splice(randomIndex, 1)[0];
-      const initialCard = createEventCard(initialEvent);
-      initialCard.querySelector('.card-year').style.display = 'block';
-      timeline.appendChild(initialCard);
-      
-      progress++;
-      updateGameInfo();
-      resetCurrentCard();
-      initializeMainButton();
-      updateCardCache();
-      console.log("Game initialized successfully");
-    } catch (error) {
-      console.error('Error initializing game:', error);
-      tg.showAlert('An error occurred while initializing the game. Please try again.');
+    tg = window.Telegram.WebApp;
+    if (!tg) {
+      console.error("Telegram Web App is not available");
+      alert("This app requires Telegram Web App to function properly.");
+      return;
     }
+  
+    tg.ready();
+    tg.expand();
+    console.log("Telegram Web App initialized");
+  
+    currentCard = document.getElementById('current-card');
+    timeline = document.getElementById('timeline');
+    feedback = document.getElementById('feedback');
+    placementIndicator = document.createElement('div');
+    placementIndicator.className = 'placement-indicator';
+  
+    if (!currentCard || !timeline || !feedback) {
+      throw new Error("Required game elements not found");
+    }
+  
+    availableEvents = [...events];
+    score = 0;
+    lives = 3;
+    progress = 0;
+  
+    updateGameInfo();
+    clearTimeline();
+    setupEventListeners();
+    implementTouchDragDrop();
+    initializeMainButton();
+    updateCardCache();
   }
 
 // Clear the timeline
@@ -624,8 +623,22 @@ timeline.addEventListener('dragover', handleDragOver);
 timeline.addEventListener('dragleave', handleDragLeave);
 timeline.addEventListener('drop', handleDrop);
 
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+      initializeGame();
+    } catch (error) {
+      console.error("Error initializing game:", error);
+      if (tg && tg.showAlert) {
+        tg.showAlert('An error occurred while initializing the game. Please try again.');
+      } else {
+        alert('An error occurred while initializing the game. Please try again.');
+      }
+    }
+  });
+
 
   } else {
     console.error("Telegram Web App is not available");
     // Implement fallback behavior or show an error message
   }
+  })();
