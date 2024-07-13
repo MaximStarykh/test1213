@@ -19,7 +19,18 @@ const totalCards = 10;
 let availableEvents = []
 
 // DOM Elements
-let currentCard, timeline, feedback, placementIndicator;
+function setupEventListeners() {
+    if (currentCard && timeline) {
+      currentCard.addEventListener('dragstart', handleDragStart);
+      currentCard.addEventListener('dragend', handleDragEnd);
+      timeline.addEventListener('dragover', handleDragOver);
+      timeline.addEventListener('dragleave', handleDragLeave);
+      timeline.addEventListener('drop', handleDrop);
+      console.log("Event listeners set up successfully");
+    } else {
+      console.error("Required elements not found for event listeners");
+    }
+  }
 
 document.addEventListener('DOMContentLoaded', function() {
     try {
@@ -29,12 +40,20 @@ document.addEventListener('DOMContentLoaded', function() {
       placementIndicator = document.createElement('div');
       placementIndicator.className = 'placement-indicator';
   
+      if (!currentCard || !timeline || !feedback) {
+        throw new Error("Required game elements not found");
+      }
+  
       initializeGame();
       setupEventListeners();
       implementTouchDragDrop();
     } catch (error) {
       console.error("Error initializing game:", error);
-      tg.showAlert('An error occurred while initializing the game. Please try again.');
+      if (tg && tg.showAlert) {
+        tg.showAlert('An error occurred while initializing the game. Please try again.');
+      } else {
+        alert('An error occurred while initializing the game. Please try again.');
+      }
     }
   });
 
