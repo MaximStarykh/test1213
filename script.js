@@ -21,9 +21,28 @@ let availableEvents = []
 // DOM Elements
 
 let currentCard, timeline, feedback, placementIndicator;
-
-function setupEventListeners() {
+function initializeDOMElements() {
+    currentCard = document.getElementById('current-card');
+    timeline = document.getElementById('timeline');
+    feedback = document.getElementById('feedback');
+    placementIndicator = document.createElement('div');
+    placementIndicator.className = 'placement-indicator';
+  
+    if (!currentCard || !timeline || !feedback) {
+      throw new Error("Required game elements not found");
+    }
+  }
+  function setupEventListeners() {
     console.log("Setting up event listeners...");
+    if (!currentCard || !timeline) {
+      try {
+        initializeDOMElements();
+      } catch (error) {
+        console.error("Failed to initialize DOM elements:", error);
+        return;
+      }
+    }
+  
     if (currentCard && timeline) {
       currentCard.addEventListener('dragstart', handleDragStart);
       currentCard.addEventListener('dragend', handleDragEnd);
@@ -38,16 +57,7 @@ function setupEventListeners() {
 
   document.addEventListener('DOMContentLoaded', function() {
     try {
-      currentCard = document.getElementById('current-card');
-      timeline = document.getElementById('timeline');
-      feedback = document.getElementById('feedback');
-      placementIndicator = document.createElement('div');
-      placementIndicator.className = 'placement-indicator';
-  
-      if (!currentCard || !timeline || !feedback) {
-        throw new Error("Required game elements not found");
-      }
-  
+      initializeDOMElements();
       initializeGame();
       setupEventListeners();
       implementTouchDragDrop();
@@ -527,17 +537,26 @@ function restartGame() {
 // Implement touch drag and drop functionality
 function implementTouchDragDrop() {
     if (!currentCard) {
-        console.error("Current card not found, cannot implement touch drag and drop");
+      try {
+        initializeDOMElements();
+      } catch (error) {
+        console.error("Failed to initialize DOM elements for touch drag and drop:", error);
         return;
       }
-    
-      let isDragging = false;
-      let startX, startY;
-    
-      currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
-      currentCard.addEventListener('touchmove', handleTouchMove, { passive: false });
-      currentCard.addEventListener('touchend', handleTouchEnd);
-      currentCard.addEventListener('touchcancel', handleTouchEnd);
+    }
+  
+    if (!currentCard) {
+      console.error("Current card not found, cannot implement touch drag and drop");
+      return;
+    }
+  
+    let isDragging = false;
+    let startX, startY;
+  
+    currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
+    currentCard.addEventListener('touchmove', handleTouchMove, { passive: false });
+    currentCard.addEventListener('touchend', handleTouchEnd);
+    currentCard.addEventListener('touchcancel', handleTouchEnd);
   
     function handleTouchStart(e) {
         if (!currentCard.draggable) return;
