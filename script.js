@@ -19,7 +19,11 @@ const totalCards = 10;
 let availableEvents = []
 
 // DOM Elements
+
+let currentCard, timeline, feedback, placementIndicator;
+
 function setupEventListeners() {
+    console.log("Setting up event listeners...");
     if (currentCard && timeline) {
       currentCard.addEventListener('dragstart', handleDragStart);
       currentCard.addEventListener('dragend', handleDragEnd);
@@ -32,7 +36,7 @@ function setupEventListeners() {
     }
   }
 
-document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function() {
     try {
       currentCard = document.getElementById('current-card');
       timeline = document.getElementById('timeline');
@@ -522,13 +526,18 @@ function restartGame() {
 
 // Implement touch drag and drop functionality
 function implementTouchDragDrop() {
-    let isDragging = false;
-    let startX, startY;
-  
-    currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
-    currentCard.addEventListener('touchmove', handleTouchMove, { passive: false });
-    currentCard.addEventListener('touchend', handleTouchEnd);
-    currentCard.addEventListener('touchcancel', handleTouchEnd);
+    if (!currentCard) {
+        console.error("Current card not found, cannot implement touch drag and drop");
+        return;
+      }
+    
+      let isDragging = false;
+      let startX, startY;
+    
+      currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
+      currentCard.addEventListener('touchmove', handleTouchMove, { passive: false });
+      currentCard.addEventListener('touchend', handleTouchEnd);
+      currentCard.addEventListener('touchcancel', handleTouchEnd);
   
     function handleTouchStart(e) {
         if (!currentCard.draggable) return;
