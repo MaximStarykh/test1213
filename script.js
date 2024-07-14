@@ -47,6 +47,18 @@
           showAlert('An error occurred while initializing the game. Please try again.');
         }
       }
+
+      function initializeDOMElements() {
+        currentCard = document.getElementById('current-card');
+        timeline = document.getElementById('timeline');
+        feedback = document.getElementById('feedback');
+        placementIndicator = document.createElement('div');
+        placementIndicator.className = 'placement-indicator';
+      
+        if (!currentCard || !timeline || !feedback) {
+          throw new Error("Required game elements not found");
+        }
+      }
   
     /**
      * Set up event listeners
