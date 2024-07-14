@@ -24,44 +24,29 @@
      * Initialize the game
      */
     function initializeGame() {
-      try {
-        tg.ready();
-        tg.expand();
-        console.log("Telegram Web App initialized");
-  
-        initializeDOMElements();
-        setupEventListeners();
-        implementTouchDragDrop();
-        initializeMainButton();
-        resetGameState();
-        updateGameInfo();
-        clearTimeline();
-        if (availableEvents.length > 0) {
+        try {
+          tg.ready();
+          tg.expand();
+          console.log("Telegram Web App initialized");
+      
+          initializeDOMElements();
+          setupEventListeners();
+          implementTouchDragDrop();
+          initializeMainButton(); // Add this line
+          resetGameState();
+          updateGameInfo();
+          clearTimeline();
+          if (availableEvents.length > 0) {
             const firstEvent = availableEvents.shift();
             const firstCard = createEventCard(firstEvent);
             timeline.appendChild(firstCard);
             updateCardCache();
           }
-      } catch (error) {
-        console.error("Error initializing game:", error);
-        showAlert('An error occurred while initializing the game. Please try again.');
+        } catch (error) {
+          console.error("Error initializing game:", error);
+          showAlert('An error occurred while initializing the game. Please try again.');
+        }
       }
-    }
-  
-    /**
-     * Initialize DOM elements
-     */
-    function initializeDOMElements() {
-      currentCard = document.getElementById('current-card');
-      timeline = document.getElementById('timeline');
-      feedback = document.getElementById('feedback');
-      placementIndicator = document.createElement('div');
-      placementIndicator.className = 'placement-indicator';
-  
-      if (!currentCard || !timeline || !feedback) {
-        throw new Error("Required game elements not found");
-      }
-    }
   
     /**
      * Set up event listeners
@@ -88,19 +73,47 @@
     /**
      * Initialize the main button
      */
+    let fallbackButton;
+
     function initializeMainButton() {
+      fallbackButton = createFallbackButton();
+      
+      if (tg.MainButton.isVisible) {
         if (isHandEmpty()) {
           updateMainButton('Draw Card', true);
         } else {
           updateMainButton('Place Card', true);
         }
-        tg.MainButton.onClick(() => {
-          if (isHandEmpty()) {
-            drawCard();
-          } else {
-            showAlert('Place your current card on the timeline before drawing a new one.');
-          }
-        });
+        tg.MainButton.onClick(() => handleMainButtonClick());
+      } else {
+        console.warn("Telegram MainButton is not available. Using fallback button.");
+        updateFallbackButton(isHandEmpty() ? 'Draw Card' : 'Place Card', true);
+        fallbackButton.addEventListener('click', handleMainButtonClick);
+      }
+    }
+    
+    function handleMainButtonClick() {
+      if (isHandEmpty()) {
+        drawCard();
+      } else {
+        showAlert('Place your current card on the timeline before drawing a new one.');
+      }
+    }
+
+    function updateFallbackButton(text, visible) {
+        if (fallbackButton) {
+          fallbackButton.textContent = text;
+          fallbackButton.style.display = visible ? 'block' : 'none';
+        }
+      }
+
+      function createFallbackButton() {
+        const fallbackButton = document.createElement('button');
+        fallbackButton.id = 'fallback-main-button';
+        fallbackButton.className = 'fallback-button';
+        fallbackButton.style.display = 'none'; // Initially hidden
+        document.body.appendChild(fallbackButton);
+        return fallbackButton;
       }
   
     /**
@@ -109,13 +122,17 @@
      * @param {boolean} visible - Button visibility
      */
     function updateMainButton(text, visible) {
-      if (visible) {
-        tg.MainButton.setText(text);
-        tg.MainButton.show();
-      } else {
-        tg.MainButton.hide();
+        if (tg.MainButton.isVisible) {
+          if (visible) {
+            tg.MainButton.setText(text);
+            tg.MainButton.show();
+          } else {
+            tg.MainButton.hide();
+          }
+        } else {
+          updateFallbackButton(text, visible);
+        }
       }
-    }
   
     /**
      * Reset game state
