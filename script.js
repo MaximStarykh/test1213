@@ -341,51 +341,41 @@
         e.preventDefault();
         placementIndicator.style.display = 'none';
         
-        try {
-          const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
-          if (id === 'current-card') {
-            const currentCardElement = document.getElementById('current-card');
-            if (!currentCardElement) throw new Error("Current card element not found");
-      
-            const currentEventName = currentCardElement.querySelector('.card-title').textContent;
-            const currentEvent = events.find(event => event.name === currentEventName);
-            
-            if (!currentEvent) throw new Error("Event not found");
-      
-            const newCard = createEventCard(currentEvent);
-            const afterElement = getDragAfterElement(timeline, e.clientX);
-      
-            if (afterElement) {
-              timeline.insertBefore(newCard, afterElement);
-            } else {
-              timeline.appendChild(newCard);
-            }
-      
-            const isCorrect = validateCardPlacement(newCard);
-            if (isCorrect) {
-              newCard.querySelector('.card-year').style.display = 'block';
-              updateGameState(true);
-              resetCurrentCard();
-              updateMainButton('Draw Card', true);
-            } else {
-              timeline.removeChild(newCard);
-              updateGameState(false);
-              showAlert('Incorrect placement. Try again!');
-            }
-          }
+        const id = e.dataTransfer.getData('text');
+        if (id === 'current-card') {
+          const currentCardElement = document.getElementById('current-card');
+          const currentEventName = currentCardElement.querySelector('.card-title').textContent;
+          const currentEvent = events.find(event => event.name === currentEventName);
           
-          resetCardPositions();
-          updateCardCache();
-        } catch (error) {
-          console.error("Error handling drop:", error);
-          showAlert('An error occurred while placing the card. Please try again.');
-        }
+          if (!currentEvent) {
+            console.error("Event not found");
+            return;
+          }
       
-        // Reset the opacity of the dragged card
-        const draggedCard = document.querySelector('.card[style*="opacity"]');
-        if (draggedCard) {
-          draggedCard.style.opacity = '1';
+          const newCard = createEventCard(currentEvent);
+          const afterElement = getDragAfterElement(timeline, e.clientX);
+      
+          if (afterElement) {
+            timeline.insertBefore(newCard, afterElement);
+          } else {
+            timeline.appendChild(newCard);
+          }
+      
+          const isCorrect = validateCardPlacement(newCard);
+          if (isCorrect) {
+            newCard.querySelector('.card-year').style.display = 'block';
+            updateGameState(true);
+            resetCurrentCard();
+            updateMainButton('Draw Card', true);
+          } else {
+            timeline.removeChild(newCard);
+            updateGameState(false);
+            showAlert('Incorrect placement. Try again!');
+          }
         }
+        
+        resetCardPositions();
+        updateCardCache();
       }
   
     // Cache for card elements
@@ -690,18 +680,18 @@ function updateLayout() {
  * @param {number} x - X coordinate
  * @returns {HTMLElement|null} - Element to insert after
  */
-function getDragAfterElement(container, x) {
-    const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
-    return draggableElements.reduce((closest, child) => {
-      const box = child.getBoundingClientRect();
-      const offset = x - box.left - box.width / 2;
-      if (offset < 0 && offset > closest.offset) {
-        return { offset: offset, element: child };
-      } else {
-        return closest;
+    function getDragAfterElement(container, x) {
+        const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+          const box = child.getBoundingClientRect();
+          const offset = x - box.left - box.width / 2;
+          if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+          } else {
+            return closest;
+          }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
       }
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-  }
   
     function handleTouchMove(e) {
       if (!isDragging) return;
