@@ -351,6 +351,12 @@
           console.error("Error handling drop:", error);
           showAlert('An error occurred while placing the card. Please try again.');
         }
+      
+        // Reset the opacity of the dragged card
+        const draggedCard = document.querySelector('.card[style*="opacity"]');
+        if (draggedCard) {
+          draggedCard.style.opacity = '1';
+        }
       }
   
     // Cache for card elements
@@ -621,39 +627,46 @@ function updateLayout() {
       console.error("Current card not found, cannot implement touch drag and drop");
       return;
     }
-
+  
     let isDragging = false;
     let startX, startY;
-
+    let cardClone;
+  
     currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
     currentCard.addEventListener('touchmove', handleTouchMove, { passive: false });
     currentCard.addEventListener('touchend', handleTouchEnd);
     currentCard.addEventListener('touchcancel', handleTouchEnd);
-
+  
     function handleTouchStart(e) {
       if (!currentCard.draggable) return;
       isDragging = true;
       const touch = e.touches[0];
       startX = touch.clientX - currentCard.offsetLeft;
       startY = touch.clientY - currentCard.offsetTop;
-      currentCard.style.zIndex = '1000';
+      
+      // Create a clone of the card for dragging
+      cardClone = currentCard.cloneNode(true);
+      cardClone.style.position = 'fixed';
+      cardClone.style.zIndex = '1000';
+      cardClone.style.opacity = '0.8';
+      document.body.appendChild(cardClone);
+      
       e.preventDefault();
     }
-
+  
     function handleTouchMove(e) {
       if (!isDragging) return;
       e.preventDefault();
       const touch = e.touches[0];
       let newX = touch.clientX - startX;
       let newY = touch.clientY - startY;
-
-      currentCard.style.position = 'fixed';
-      currentCard.style.left = `${newX}px`;
-      currentCard.style.top = `${newY}px`;
-
+  
+      cardClone.style.left = `${newX}px`;
+      cardClone.style.top = `${newY}px`;
+  
       const afterElement = getDragAfterElement(timeline, touch.clientX);
       updateCardPositions(afterElement);
-
+  
       placementIndicator.style.display = 'block';
       if (afterElement) {
         timeline.insertBefore(placementIndicator, afterElement);
@@ -661,22 +674,25 @@ function updateLayout() {
         timeline.appendChild(placementIndicator);
       }
     }
-
+  
     function handleTouchEnd(e) {
       if (!isDragging) return;
       isDragging = false;
-      currentCard.style.zIndex = '';
       placementIndicator.style.display = 'none';
-
+  
       const touch = e.changedTouches[0];
       const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-
+  
       if (timeline.contains(dropTarget)) {
         handleDrop(createTouchDropEvent(touch));
-      } else {
-        resetCurrentCardPosition();
       }
-
+  
+      // Remove the card clone
+      if (cardClone) {
+        document.body.removeChild(cardClone);
+        cardClone = null;
+      }
+  
       resetCardPositions();
     }
   }
