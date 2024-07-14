@@ -403,20 +403,21 @@
      * @param {HTMLElement} afterElement - Element to insert after
      */
     function updateCardPositions(afterElement) {
-      cachedCards.forEach(card => card.classList.remove('sliding-left', 'sliding-right'));
-  
-      if (afterElement) {
-        const previousElement = afterElement.previousElementSibling;
-        if (previousElement && previousElement.classList.contains('card')) {
-          previousElement.classList.add('sliding-left');
+        const cards = timeline.querySelectorAll('.card');
+        cards.forEach(card => {
+          card.classList.remove('sliding-left', 'sliding-right');
+        });
+      
+        if (afterElement) {
+          const beforeElement = afterElement.previousElementSibling;
+          if (beforeElement && beforeElement.classList.contains('card')) {
+            beforeElement.classList.add('sliding-left');
+          }
           afterElement.classList.add('sliding-right');
-        } else {
-          afterElement.classList.add('sliding-right');
+        } else if (cards.length > 0) {
+          cards[cards.length - 1].classList.add('sliding-left');
         }
-      } else if (cachedCards.length > 0) {
-        cachedCards[cachedCards.length - 1].classList.add('sliding-left');
       }
-    }
   
     /**
      * Reset card positions after drag
@@ -682,6 +683,25 @@ function updateLayout() {
       
       e.preventDefault();
     }
+
+    /**
+ * Get the element to insert the dragged card after
+ * @param {HTMLElement} container - Container element
+ * @param {number} x - X coordinate
+ * @returns {HTMLElement|null} - Element to insert after
+ */
+function getDragAfterElement(container, x) {
+    const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
+    return draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = x - box.left - box.width / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
   
     function handleTouchMove(e) {
       if (!isDragging) return;
