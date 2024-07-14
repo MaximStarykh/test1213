@@ -36,7 +36,12 @@
         resetGameState();
         updateGameInfo();
         clearTimeline();
-        updateCardCache();
+        if (availableEvents.length > 0) {
+            const firstEvent = availableEvents.shift();
+            const firstCard = createEventCard(firstEvent);
+            timeline.appendChild(firstCard);
+            updateCardCache();
+          }
       } catch (error) {
         console.error("Error initializing game:", error);
         showAlert('An error occurred while initializing the game. Please try again.');
@@ -84,10 +89,19 @@
      * Initialize the main button
      */
     function initializeMainButton() {
-      tg.MainButton.setText('Draw Card');
-      tg.MainButton.show();
-      tg.MainButton.onClick(drawCard);
-    }
+        if (isHandEmpty()) {
+          updateMainButton('Draw Card', true);
+        } else {
+          updateMainButton('Place Card', true);
+        }
+        tg.MainButton.onClick(() => {
+          if (isHandEmpty()) {
+            drawCard();
+          } else {
+            showAlert('Place your current card on the timeline before drawing a new one.');
+          }
+        });
+      }
   
     /**
      * Update the main button
@@ -145,31 +159,42 @@
     /**
      * Draw a new card
      */
-    function drawCard() {
-      console.log("Drawing card...");
-      if (availableEvents.length === 0) {
-        console.log("No more events available");
-        endGame();
-        return;
+    function isHandEmpty() {
+        return !currentCard.querySelector('.card-title') || currentCard.querySelector('.card-title').textContent === 'Draw a card';
       }
-  
-      try {
-        const randomIndex = Math.floor(Math.random() * availableEvents.length);
-        const currentEvent = availableEvents.splice(randomIndex, 1)[0];
-  
-        if (!currentCard) {
-          throw new Error("Current card element not found");
+      
+      function drawCard() {
+        if (!isHandEmpty()) {
+          showAlert('You already have a card in your hand. Place it before drawing a new one.');
+          return;
         }
-  
-        currentCard.innerHTML = createEventCard(currentEvent, true).innerHTML;
-        currentCard.draggable = true;
-        currentCard.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
-        console.log("Card drawn successfully");
-      } catch (error) {
-        console.error("Error drawing card:", error);
-        showAlert('An error occurred while drawing a card. Please try again.');
+      
+        console.log("Drawing card...");
+        if (availableEvents.length === 0) {
+          console.log("No more events available");
+          endGame();
+          return;
+        }
+      
+        try {
+          const randomIndex = Math.floor(Math.random() * availableEvents.length);
+          const currentEvent = availableEvents.splice(randomIndex, 1)[0];
+      
+          if (!currentCard) {
+            throw new Error("Current card element not found");
+          }
+      
+          currentCard.innerHTML = createEventCard(currentEvent, true).innerHTML;
+          currentCard.draggable = true;
+          currentCard.setAttribute('aria-label', `Event card: ${currentEvent.name}. Drag to place on timeline.`);
+          console.log("Card drawn successfully");
+          
+          updateMainButton('Place Card', true);
+        } catch (error) {
+          console.error("Error drawing card:", error);
+          showAlert('An error occurred while drawing a card. Please try again.');
+        }
       }
-    }
   
     /**
      * Create a new event card
@@ -265,62 +290,44 @@
      * @param {DragEvent} e - Drop event
      */
     function handleDrop(e) {
-      try {
-        e.preventDefault();
-        updateMainButton('Place Card', true);
-        
-        const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
-        if (id === 'current-card') {
-          const currentCardElement = document.getElementById('current-card');
-          if (!currentCardElement) throw new Error("Current card element not found");
-  
-          const currentEvent = events.find(event => event.name === currentCardElement.querySelector('.card-title').textContent);
-          const newCard = createEventCard(currentEvent);
-          const afterElement = getDragAfterElement(timeline, e.clientX);
-  
-          if (afterElement) {
-            timeline.insertBefore(newCard, afterElement);
-          } else {
-            timeline.appendChild(newCard);
+        try {
+          e.preventDefault();
+          
+          const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
+          if (id === 'current-card') {
+            const currentCardElement = document.getElementById('current-card');
+            if (!currentCardElement) throw new Error("Current card element not found");
+      
+            const currentEvent = events.find(event => event.name === currentCardElement.querySelector('.card-title').textContent);
+            const newCard = createEventCard(currentEvent);
+            const afterElement = getDragAfterElement(timeline, e.clientX);
+      
+            if (afterElement) {
+              timeline.insertBefore(newCard, afterElement);
+            } else {
+              timeline.appendChild(newCard);
+            }
+      
+            const isCorrect = validateCardPlacement(newCard);
+            if (isCorrect) {
+              newCard.querySelector('.card-year').style.display = 'block';
+              updateGameState(true);
+            } else {
+              timeline.removeChild(newCard);
+              updateGameState(false);
+            }
+            resetCurrentCard();
+            updateMainButton('Draw Card', true);
           }
-  
-          const isCorrect = validateCardPlacement(newCard);
-          if (isCorrect) {
-            newCard.querySelector('.card-year').style.display = 'block';
-            updateGameState(true);
-          } else {
-            timeline.removeChild(newCard);
-            updateGameState(false);
-          }
-          resetCurrentCard();
+          
+          placementIndicator.style.display = 'none';
+          resetCardPositions();
+          updateCardCache();
+        } catch (error) {
+          console.error("Error handling drop:", error);
+          showAlert('An error occurred while placing the card. Please try again.');
         }
-        placementIndicator.style.display = 'none';
-        resetCardPositions();
-        updateCardCache();
-      } catch (error) {
-        console.error("Error handling drop:", error);
-        showAlert('An error occurred while placing the card. Please try again.');
       }
-    }
-  
-    /**
-     * Get the element to insert the dragged card after
-     * @param {HTMLElement} container - Container element
-     * @param {number} x - X coordinate
-     * @returns {HTMLElement|null} - Element to insert after
-     */
-    function getDragAfterElement(container, x) {
-      const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = x - box.left - box.width / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
-        } else {
-          return closest;
-        }
-      }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
   
     // Cache for card elements
     let cachedCards = [];
