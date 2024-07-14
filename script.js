@@ -299,32 +299,16 @@
         e.preventDefault();
         const afterElement = getDragAfterElement(timeline, e.clientX);
         
-        // Remove existing sliding classes
-        document.querySelectorAll('.card').forEach(card => {
-          card.classList.remove('sliding-left', 'sliding-right');
-        });
-      
-        // Add sliding classes
-        if (afterElement) {
-          const beforeElement = afterElement.previousElementSibling;
-          if (beforeElement && beforeElement.classList.contains('card')) {
-            beforeElement.classList.add('sliding-left');
-          }
-          afterElement.classList.add('sliding-right');
-        } else {
-          const lastCard = timeline.querySelector('.card:last-child');
-          if (lastCard) {
-            lastCard.classList.add('sliding-left');
-          }
-        }
-      
+        // Use CSS custom properties for dynamic positioning
+        timeline.style.setProperty('--indicator-position', afterElement ? afterElement.offsetLeft + 'px' : '100%');
+        
+        // Update card positions using CSS transforms
+        updateCardPositions(afterElement);
+        
         placementIndicator.style.display = 'block';
-        if (afterElement) {
-          timeline.insertBefore(placementIndicator, afterElement);
-        } else {
-          timeline.appendChild(placementIndicator);
-        }
-      }
+    }
+    
+
   
     /**
      * Handle drag leave event
@@ -353,25 +337,46 @@
           }
       
           const newCard = createEventCard(currentEvent);
+          newCard.style.opacity = '0';
+          newCard.style.transform = 'scale(0.9)';
+          
           const afterElement = getDragAfterElement(timeline, e.clientX);
-      
           if (afterElement) {
             timeline.insertBefore(newCard, afterElement);
           } else {
             timeline.appendChild(newCard);
           }
-      
-          const isCorrect = validateCardPlacement(newCard);
-          if (isCorrect) {
-            newCard.querySelector('.card-year').style.display = 'block';
-            updateGameState(true);
-            resetCurrentCard();
-            updateMainButton('Draw Card', true);
-          } else {
-            timeline.removeChild(newCard);
-            updateGameState(false);
-            showAlert('Incorrect placement. Try again!');
-          }
+          
+          // Trigger reflow to ensure the initial state is applied
+          newCard.offsetHeight;
+          
+          newCard.style.opacity = '1';
+          newCard.style.transform = 'scale(1)';
+          
+          setTimeout(() => {
+            const isCorrect = validateCardPlacement(newCard);
+            if (isCorrect) {
+              newCard.querySelector('.card-year').style.opacity = '0';
+              newCard.querySelector('.card-year').style.display = 'block';
+              setTimeout(() => {
+                newCard.querySelector('.card-year').style.opacity = '1';
+              }, 50);
+              updateGameState(true);
+              resetCurrentCard();
+              updateMainButton('Draw Card', true);
+            } else {
+              newCard.style.animation = 'shake 0.5s ease-in-out';
+              setTimeout(() => {
+                newCard.style.opacity = '0';
+                newCard.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                  timeline.removeChild(newCard);
+                  updateGameState(false);
+                  showAlert('Incorrect placement. Try again!');
+                }, 300);
+              }, 500);
+            }
+          }, 300);
         }
         
         resetCardPositions();
@@ -394,20 +399,16 @@
      */
     function updateCardPositions(afterElement) {
         const cards = timeline.querySelectorAll('.card');
-        cards.forEach(card => {
-          card.classList.remove('sliding-left', 'sliding-right');
+        cards.forEach((card, index) => {
+            if (card === afterElement) {
+                card.style.transform = 'translateX(90px)';
+            } else if (afterElement && index === Array.from(cards).indexOf(afterElement) - 1) {
+                card.style.transform = 'translateX(-90px)';
+            } else {
+                card.style.transform = 'translateX(0)';
+            }
         });
-      
-        if (afterElement) {
-          const beforeElement = afterElement.previousElementSibling;
-          if (beforeElement && beforeElement.classList.contains('card')) {
-            beforeElement.classList.add('sliding-left');
-          }
-          afterElement.classList.add('sliding-right');
-        } else if (cards.length > 0) {
-          cards[cards.length - 1].classList.add('sliding-left');
-        }
-      }
+    }
   
     /**
      * Reset card positions after drag
@@ -651,6 +652,8 @@ function updateLayout() {
     let isDragging = false;
     let startX, startY;
     let cardClone;
+    let lastMoveTime = 0;
+    const moveThrottle = 16; // ~60fps
   
     currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
     currentCard.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -664,15 +667,41 @@ function updateLayout() {
       startX = touch.clientX - currentCard.offsetLeft;
       startY = touch.clientY - currentCard.offsetTop;
       
-      // Create a clone of the card for dragging
       cardClone = currentCard.cloneNode(true);
       cardClone.style.position = 'fixed';
       cardClone.style.zIndex = '1000';
       cardClone.style.opacity = '0.8';
+      cardClone.style.transform = 'translate(0, 0)';
       document.body.appendChild(cardClone);
       
       e.preventDefault();
     }
+  
+    function handleTouchMove(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      
+      const now = Date.now();
+      if (now - lastMoveTime < moveThrottle) return;
+      lastMoveTime = now;
+      
+      const touch = e.touches[0];
+      let newX = touch.clientX - startX;
+      let newY = touch.clientY - startY;
+      
+      requestAnimationFrame(() => {
+        cardClone.style.transform = `translate(${newX}px, ${newY}px)`;
+        const afterElement = getDragAfterElement(timeline, touch.clientX);
+        updateCardPositions(afterElement);
+        
+        placementIndicator.style.display = 'block';
+        if (afterElement) {
+          timeline.insertBefore(placementIndicator, afterElement);
+        } else {
+          timeline.appendChild(placementIndicator);
+        }
+      });
+    }  
 
     /**
  * Get the element to insert the dragged card after
@@ -692,27 +721,6 @@ function updateLayout() {
           }
         }, { offset: Number.NEGATIVE_INFINITY }).element;
       }
-  
-    function handleTouchMove(e) {
-      if (!isDragging) return;
-      e.preventDefault();
-      const touch = e.touches[0];
-      let newX = touch.clientX - startX;
-      let newY = touch.clientY - startY;
-  
-      cardClone.style.left = `${newX}px`;
-      cardClone.style.top = `${newY}px`;
-  
-      const afterElement = getDragAfterElement(timeline, touch.clientX);
-      updateCardPositions(afterElement);
-  
-      placementIndicator.style.display = 'block';
-      if (afterElement) {
-        timeline.insertBefore(placementIndicator, afterElement);
-      } else {
-        timeline.appendChild(placementIndicator);
-      }
-    }
   
     function handleTouchEnd(e) {
       if (!isDragging) return;
