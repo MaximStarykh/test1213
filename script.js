@@ -267,16 +267,35 @@
      * @param {DragEvent} e - Drag event
      */
     function handleDragOver(e) {
-      e.preventDefault();
-      const afterElement = getDragAfterElement(timeline, e.clientX);
-      updateCardPositions(afterElement);
-      placementIndicator.style.display = 'block';
-      if (afterElement) {
-        timeline.insertBefore(placementIndicator, afterElement);
-      } else {
-        timeline.appendChild(placementIndicator);
+        e.preventDefault();
+        const afterElement = getDragAfterElement(timeline, e.clientX);
+        
+        // Remove existing sliding classes
+        document.querySelectorAll('.card').forEach(card => {
+          card.classList.remove('sliding-left', 'sliding-right');
+        });
+      
+        // Add sliding classes
+        if (afterElement) {
+          const beforeElement = afterElement.previousElementSibling;
+          if (beforeElement && beforeElement.classList.contains('card')) {
+            beforeElement.classList.add('sliding-left');
+          }
+          afterElement.classList.add('sliding-right');
+        } else {
+          const lastCard = timeline.querySelector('.card:last-child');
+          if (lastCard) {
+            lastCard.classList.add('sliding-left');
+          }
+        }
+      
+        placementIndicator.style.display = 'block';
+        if (afterElement) {
+          timeline.insertBefore(placementIndicator, afterElement);
+        } else {
+          timeline.appendChild(placementIndicator);
+        }
       }
-    }
   
     /**
      * Handle drag leave event
@@ -290,15 +309,20 @@
      * @param {DragEvent} e - Drop event
      */
     function handleDrop(e) {
+        e.preventDefault();
+        placementIndicator.style.display = 'none';
+        
         try {
-          e.preventDefault();
-          
           const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
           if (id === 'current-card') {
             const currentCardElement = document.getElementById('current-card');
             if (!currentCardElement) throw new Error("Current card element not found");
       
-            const currentEvent = events.find(event => event.name === currentCardElement.querySelector('.card-title').textContent);
+            const currentEventName = currentCardElement.querySelector('.card-title').textContent;
+            const currentEvent = events.find(event => event.name === currentEventName);
+            
+            if (!currentEvent) throw new Error("Event not found");
+      
             const newCard = createEventCard(currentEvent);
             const afterElement = getDragAfterElement(timeline, e.clientX);
       
@@ -312,15 +336,15 @@
             if (isCorrect) {
               newCard.querySelector('.card-year').style.display = 'block';
               updateGameState(true);
+              resetCurrentCard();
+              updateMainButton('Draw Card', true);
             } else {
               timeline.removeChild(newCard);
               updateGameState(false);
+              showAlert('Incorrect placement. Try again!');
             }
-            resetCurrentCard();
-            updateMainButton('Draw Card', true);
           }
           
-          placementIndicator.style.display = 'none';
           resetCardPositions();
           updateCardCache();
         } catch (error) {
@@ -363,10 +387,10 @@
      * Reset card positions after drag
      */
     function resetCardPositions() {
-      cachedCards.forEach(card => {
-        card.classList.remove('sliding-left', 'sliding-right');
-      });
-    }
+        document.querySelectorAll('.card').forEach(card => {
+          card.classList.remove('sliding-left', 'sliding-right');
+        });
+      }
   
     /**
      * Validate card placement
@@ -374,24 +398,29 @@
      * @returns {boolean} - Whether placement is valid
      */
     function validateCardPlacement(newCard) {
-      const cards = Array.from(timeline.querySelectorAll('.card'));
-      const newCardIndex = cards.indexOf(newCard);
-      const newCardYear = parseInt(newCard.querySelector('.card-year').textContent);
-  
-      if (newCardIndex === 0) {
-        const nextCard = cards[1];
-        return nextCard ? newCardYear <= parseInt(nextCard.querySelector('.card-year').textContent) : true;
-      } else if (newCardIndex === cards.length - 1) {
-        const prevCard = cards[cards.length - 2];
-        return newCardYear >= parseInt(prevCard.querySelector('.card-year').textContent);
-      } else {
-        const prevCard = cards[newCardIndex - 1];
-        const nextCard = cards[newCardIndex + 1];
-        const prevCardYear = parseInt(prevCard.querySelector('.card-year').textContent);
-        const nextCardYear = parseInt(nextCard.querySelector('.card-year').textContent);
-        return newCardYear >= prevCardYear && newCardYear <= nextCardYear;
+        const cards = Array.from(timeline.querySelectorAll('.card'));
+        const newCardIndex = cards.indexOf(newCard);
+        const newCardYear = parseInt(newCard.querySelector('.card-year').textContent);
+      
+        if (isNaN(newCardYear)) {
+          console.error("Invalid year for new card");
+          return false;
+        }
+      
+        if (newCardIndex === 0) {
+          const nextCard = cards[1];
+          return !nextCard || newCardYear <= parseInt(nextCard.querySelector('.card-year').textContent);
+        } else if (newCardIndex === cards.length - 1) {
+          const prevCard = cards[cards.length - 2];
+          return newCardYear >= parseInt(prevCard.querySelector('.card-year').textContent);
+        } else {
+          const prevCard = cards[newCardIndex - 1];
+          const nextCard = cards[newCardIndex + 1];
+          const prevCardYear = parseInt(prevCard.querySelector('.card-year').textContent);
+          const nextCardYear = parseInt(nextCard.querySelector('.card-year').textContent);
+          return newCardYear >= prevCardYear && newCardYear <= nextCardYear;
+        }
       }
-    }
   
     /**
      * Update game state after card placement
