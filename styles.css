@@ -1,4 +1,3 @@
-/* CSS Custom Properties for easy theming and accessibility */
 :root {
     --primary-color: #ffffff;
     --secondary-color: #4CAF50;
@@ -19,7 +18,6 @@
     --tg-theme-button-text-color: var(--tg-theme-button-text-color, var(--primary-color));
 }
 
-/* Global Reset and Base Styles */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -27,35 +25,30 @@
 }
 
 body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background: var(--background-gradient);
     color: var(--tg-theme-text-color);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    overflow-x: hidden;
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
-/* Improved Game Container Layout */
 #game-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     max-width: 100%;
     width: 100%;
+    min-height: 100vh;
     padding: 20px;
-    box-sizing: border-box;
 }
 
-/* Enhanced Game Info Section */
 #game-info {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
     align-items: center;
     font-size: 1.2rem;
-    color: var(--tg-theme-text-color);
+    width: 100%;
     margin-bottom: 20px;
     padding: 15px;
     background-color: var(--tg-theme-bg-color);
@@ -81,14 +74,13 @@ body {
     gap: 5px;
 }
 
-/* Improved Timeline Section */
 #timeline {
     flex-grow: 1;
     display: flex;
     align-items: center;
     justify-content: flex-start;
     overflow-x: auto;
-    padding: 20px 50vw; /* Add 50vw padding on both sides */
+    padding: 20px;
     background: var(--timeline-gradient);
     border-radius: 10px;
     position: relative;
@@ -97,27 +89,16 @@ body {
     scroll-snap-type: x mandatory;
     margin-bottom: 20px;
     width: 100%;
-    scroll-padding: 0 50vw; /* Add scroll padding to account for the added space */
 }
 
-#timeline::before,
-#timeline::after {
-    content: '';
-    flex: 0 0 50vw; /* Create pseudo-elements with width of half the viewport */
-}
-
-/* Enhanced Card Styles */
 .card {
     flex-shrink: 0;
     scroll-snap-align: center;
     width: 180px;
     height: 250px;
     margin: 0 10px;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-    position: relative;
-    cursor: pointer;
     perspective: 1000px;
+    cursor: pointer;
 }
 
 .card-inner {
@@ -151,71 +132,39 @@ body {
 
 .card-front {
     background-color: var(--card-color);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    text-align: center;
 }
 
 .card-back {
     background-color: var(--secondary-color);
     color: var(--primary-color);
     transform: rotateY(180deg);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
 }
 
 .card-title {
     font-size: 1rem;
     font-weight: bold;
     text-align: center;
-    margin-top: 5px;
-    max-width: 100%;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    hyphens: auto;
-    white-space: normal;
-    line-height: 1.2;
-    max-height: 3.6em;
-    overflow: hidden;
 }
 
 .card-emoji {
     font-size: 4rem;
+    flex-grow: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-grow: 1;
 }
 
 .card-year {
     font-size: 1.2rem;
     font-weight: bold;
-    margin-bottom: 5px;
     color: var(--secondary-color);
-    margin-top: auto;
 }
 
 .card-notice {
     font-size: 0.9rem;
     line-height: 1.4;
-    text-align: center;
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-    white-space: normal;
-    word-wrap: break-word;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
 }
 
-/* Current Card Styles */
 #current-card {
     align-self: center;
     margin-bottom: 20px;
@@ -226,47 +175,15 @@ body {
     cursor: grabbing;
 }
 
-/* Telegram-style Button */
-.tg-button {
-    background-color: var(--tg-theme-button-color);
-    color: var(--tg-theme-button-text-color);
-    border: none;
-    padding: 12px 20px;
-    font-size: 1rem;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: background-color 0.3s;
-    font-weight: 500;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
+.placement-indicator {
+    width: 180px;
+    height: 250px;
+    border: 3px dashed var(--secondary-color);
+    border-radius: 15px;
+    position: absolute;
+    display: none;
 }
 
-.tg-button:hover {
-    opacity: 0.8;
-}
-
-.tg-button:active {
-    transform: scale(0.98);
-}
-
-.tg-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Card Animation Classes */
-.card.sliding-left {
-    margin-right: 95px;
-    transition: margin 0.3s ease;
-}
-
-.card.sliding-right {
-    margin-left: 95px;
-    transition: margin 0.3s ease;
-}
-
-/* Improved Feedback Styles */
 #feedback {
     position: fixed;
     right: 20px;
@@ -283,16 +200,18 @@ body {
     box-shadow: var(--card-shadow);
 }
 
-/* Telegram-style Popup (for reference, not directly used in CSS) */
-.tg-popup {
-    background-color: var(--tg-theme-bg-color);
-    color: var(--tg-theme-text-color);
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
-/* Improved Media Queries for Responsiveness */
 @media (max-width: 768px) {
     #game-info {
         font-size: 0.9rem;
@@ -331,36 +250,29 @@ body {
     #current-card {
         margin-bottom: 10px;
     }
-
-    .tg-button {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-    }
 }
 
-/* Accessibility Improvements */
-.visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-/* Focus styles for keyboard navigation */
 .card:focus,
-.tg-button:focus {
+.card:focus-visible {
     outline: 3px solid var(--tg-theme-link-color);
     outline-offset: 2px;
 }
 
-/* Smooth transitions for theme changes */
-body,
-.card,
-.tg-button {
-    transition: background-color 0.3s, color 0.3s;
+/* Animations for card sliding */
+.card.sliding-left {
+    animation: slideLeft 0.3s forwards;
+}
+
+.card.sliding-right {
+    animation: slideRight 0.3s forwards;
+}
+
+@keyframes slideLeft {
+    from { transform: translateX(0); }
+    to { transform: translateX(-95px); }
+}
+
+@keyframes slideRight {
+    from { transform: translateX(0); }
+    to { transform: translateX(95px); }
 }
