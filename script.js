@@ -85,23 +85,17 @@
     /**
      * Initialize the main button
      */
-    let fallbackButton;
 
     function initializeMainButton() {
-      fallbackButton = createFallbackButton();
       
-      if (tg.MainButton.isVisible) {
+
         if (isHandEmpty()) {
           updateMainButton('Draw Card', true);
         } else {
           updateMainButton('Place Card', true);
         }
         tg.MainButton.onClick(() => handleMainButtonClick());
-      } else {
-        console.warn("Telegram MainButton is not available. Using fallback button.");
-        updateFallbackButton(isHandEmpty() ? 'Draw Card' : 'Place Card', true);
-        fallbackButton.addEventListener('click', handleMainButtonClick);
-      }
+     
     }
     
     function handleMainButtonClick() {
@@ -112,22 +106,6 @@
       }
     }
 
-    function updateFallbackButton(text, visible) {
-        if (fallbackButton) {
-          fallbackButton.textContent = text;
-          fallbackButton.style.display = visible ? 'block' : 'none';
-        }
-      }
-
-      function createFallbackButton() {
-        const fallbackButton = document.createElement('button');
-        fallbackButton.id = 'fallback-main-button';
-        fallbackButton.className = 'fallback-button';
-        fallbackButton.style.display = 'none'; // Initially hidden
-        document.body.appendChild(fallbackButton);
-        return fallbackButton;
-      }
-  
     /**
      * Update the main button
      * @param {string} text - Button text
