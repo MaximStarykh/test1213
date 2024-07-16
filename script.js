@@ -50,6 +50,31 @@ function initializeGame() {
     resetCurrentCard();
     drawCardButton.disabled = false;
     setupAutoScroll();
+    const timeline = document.getElementById('timeline');
+    let isMouseDown = false;
+    let startX, scrollLeft;
+
+    timeline.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        startX = e.pageX - timeline.offsetLeft;
+        scrollLeft = timeline.scrollLeft;
+    });
+
+    timeline.addEventListener('mouseleave', () => {
+        isMouseDown = false;
+    });
+
+    timeline.addEventListener('mouseup', () => {
+        isMouseDown = false;
+    });
+
+    timeline.addEventListener('mousemove', (e) => {
+        if (!isMouseDown) return;
+        e.preventDefault();
+        const x = e.pageX - timeline.offsetLeft;
+        const walk = (x - startX) * 2;
+        timeline.scrollLeft = scrollLeft - walk;
+    });
     implementTouchDragDrop();
 }
 
@@ -142,13 +167,14 @@ function handleDragEnd() {
 // Handle drag over event
 function handleDragOver(e) {
     e.preventDefault();
-    const timelineRect = timeline.getBoundingClientRect();
+    const timeline = document.getElementById('timeline');
+    const rect = timeline.getBoundingClientRect();
     const scrollThreshold = 100;
 
-    if (e.clientX - timelineRect.left < scrollThreshold) {
-        timeline.scrollLeft -= 10;
-    } else if (timelineRect.right - e.clientX < scrollThreshold) {
-        timeline.scrollLeft += 10;
+    if (e.clientX - rect.left < scrollThreshold) {
+        autoScroll(timeline, -1);
+    } else if (rect.right - e.clientX < scrollThreshold) {
+        autoScroll(timeline, 1);
     }
 
     const afterElement = getDragAfterElement(timeline, e.clientX + timeline.scrollLeft);
@@ -339,65 +365,69 @@ function restartGame() {
 
 // Implement touch drag and drop functionality
 function implementTouchDragDrop() {
-let isDragging = false;
-let startX, startY;
-let originalX, originalY;
+    let isDragging = false;
+    let startX, startY, scrollLeft;
+    const timeline = document.getElementById('timeline');
 
-currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
-document.addEventListener('touchmove', handleTouchMove, { passive: false });
-document.addEventListener('touchend', handleTouchEnd);
+    currentCard.addEventListener('touchstart', handleTouchStart, { passive: false });
+    timeline.addEventListener('touchmove', handleTouchMove, { passive: false });
+    timeline.addEventListener('touchend', handleTouchEnd);
 
-function handleTouchStart(e) {
-if (!currentCard.draggable) return;
-isDragging = true;
-e.preventDefault(); // Prevent scrolling when starting drag
-const touch = e.touches[0];
-startX = touch.clientX - currentCard.offsetLeft;
-startY = touch.clientY - currentCard.offsetTop;
-originalX = currentCard.offsetLeft;
-originalY = currentCard.offsetTop;
-currentCard.style.zIndex = '1000';
-}
+    function handleTouchStart(e) {
+        if (!currentCard.draggable) return;
+        isDragging = true;
+        e.preventDefault();
+        const touch = e.touches[0];
+        startX = touch.clientX - timeline.offsetLeft;
+        startY = touch.clientY - timeline.offsetTop;
+        scrollLeft = timeline.scrollLeft;
+        currentCard.style.zIndex = '1000';
+    }
 
-function handleTouchMove(e) {
-if (!isDragging) return;
-e.preventDefault(); // Prevent scrolling during drag
-const touch = e.touches[0];
-let newX = touch.clientX - startX;
-let newY = touch.clientY - startY;
+    function handleTouchMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const x = touch.clientX - timeline.offsetLeft;
+        const walkX = (x - startX) * 2;
+        timeline.scrollLeft = scrollLeft - walkX;
 
-currentCard.style.position = 'fixed';
-currentCard.style.left = newX + 'px';
-currentCard.style.top = newY + 'px';
+        const rect = timeline.getBoundingClientRect();
+        const scrollThreshold = 50;
 
-const afterElement = getDragAfterElement(timeline, touch.clientX);
-updateCardPositions(afterElement);
+        if (touch.clientX - rect.left < scrollThreshold) {
+            autoScroll(timeline, -1);
+        } else if (rect.right - touch.clientX < scrollThreshold) {
+            autoScroll(timeline, 1);
+        }
 
-placementIndicator.style.display = 'block';
-if (afterElement) {
-    timeline.insertBefore(placementIndicator, afterElement);
-} else {
-    timeline.appendChild(placementIndicator);
-}
-}
+        const afterElement = getDragAfterElement(timeline, touch.clientX + timeline.scrollLeft);
+        updateCardPositions(afterElement);
+        placementIndicator.style.display = 'block';
+        if (afterElement) {
+            timeline.insertBefore(placementIndicator, afterElement);
+        } else {
+            timeline.appendChild(placementIndicator);
+        }
+    }
 
-function handleTouchEnd(e) {
-if (!isDragging) return;
-isDragging = false;
-currentCard.style.zIndex = '';
-placementIndicator.style.display = 'none';
+    function handleTouchEnd(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        currentCard.style.zIndex = '';
+        placementIndicator.style.display = 'none';
 
-const touch = e.changedTouches[0];
-const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+        const touch = e.changedTouches[0];
+        const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
 
-if (timeline.contains(dropTarget)) {
-    handleDrop(createTouchDropEvent(touch));
-} else {
-    resetCurrentCardPosition();
-}
+        if (timeline.contains(dropTarget)) {
+            handleDrop(createTouchDropEvent(touch));
+        } else {
+            resetCurrentCardPosition();
+        }
 
-resetCardPositions();
-}
+        resetCardPositions();
+    }
 
 function createTouchDropEvent(touch) {
 return {
@@ -433,35 +463,9 @@ timeline.addEventListener('dragleave', handleDragLeave);
 timeline.addEventListener('drop', handleDrop);
 restartGameButton.addEventListener('click', restartGame);
 
-function setupAutoScroll() {
-    const timeline = document.getElementById('timeline');
-    const scrollSpeed = 5;
-    let scrollInterval;
-
-    function startScrolling(direction) {
-        scrollInterval = setInterval(() => {
-            timeline.scrollLeft += direction * scrollSpeed;
-        }, 50);
-    }
-
-    function stopScrolling() {
-        clearInterval(scrollInterval);
-    }
-
-    timeline.addEventListener('mousemove', (e) => {
-        const rect = timeline.getBoundingClientRect();
-        const scrollThreshold = 100; // pásmo pre spustenie posúvania
-
-        if (e.clientX - rect.left < scrollThreshold) {
-            startScrolling(-1); // posun doľava
-        } else if (rect.right - e.clientX < scrollThreshold) {
-            startScrolling(1); // posun doprava
-        } else {
-            stopScrolling();
-        }
-    });
-
-    timeline.addEventListener('mouseleave', stopScrolling);
+function autoScroll(element, direction) {
+    const scrollAmount = 10;
+    element.scrollLeft += direction * scrollAmount;
 }
 
 // Initialize the game
