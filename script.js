@@ -34,6 +34,12 @@ const events = [
 
 // Initialize the game
 function initializeGame() {
+    const timeline = document.getElementById('timeline');
+    if (!timeline) {
+        console.error('Timeline element not found');
+        return;
+    }
+
     availableEvents = [...events];
     score = 0;
     lives = 3;
@@ -49,8 +55,8 @@ function initializeGame() {
     updateGameInfo();
     resetCurrentCard();
     drawCardButton.disabled = false;
-    setupAutoScroll();
-    const timeline = document.getElementById('timeline');
+
+    // Nastavenie posúvania myšou
     let isMouseDown = false;
     let startX, scrollLeft;
 
@@ -75,8 +81,9 @@ function initializeGame() {
         const walk = (x - startX) * 2;
         timeline.scrollLeft = scrollLeft - walk;
     });
-    implementTouchDragDrop();
 }
+
+
 
 // Clear the timeline
 function clearTimeline() {
@@ -469,5 +476,7 @@ function autoScroll(element, direction) {
 }
 
 // Initialize the game
-initializeGame();
-implementTouchDragDrop();
+document.addEventListener('DOMContentLoaded', () => {
+    initializeGame();
+    implementTouchDragDrop();
+});
