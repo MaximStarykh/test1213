@@ -195,9 +195,10 @@ function flipCard(card) {
  * Handles the start of a drag operation
  * @param {DragEvent} e - The drag event
  */
-function handleDragLeave() {
-    DOM.placementIndicator.style.display = 'none';
-    clearInterval(scrollInterval); // Clear the scroll interval when leaving the timeline
+function handleDragStart(e) {
+    if (e.type === 'touchstart') return; // Ignore touch events here
+    e.dataTransfer.setData('text/plain', e.target.id);
+    setTimeout(() => (DOM.currentCard.style.opacity = '0.5'), 0);
 }
 
 /**
@@ -209,7 +210,6 @@ function handleDragEnd() {
     resetCardPositions();
     clearInterval(scrollInterval); // Clear the scroll interval when dragging ends
 }
-
 
 /**
  * Handles the drag over event
@@ -243,6 +243,7 @@ function handleDragOver(e) {
  */
 function handleDragLeave() {
     DOM.placementIndicator.style.display = 'none';
+    clearInterval(scrollInterval); // Clear the scroll interval when leaving the timeline
 }
 
 /**
