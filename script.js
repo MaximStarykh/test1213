@@ -71,6 +71,12 @@ function initializeGame() {
     DOM.drawCardButton.disabled = false;
 
     setupTimelineScrolling();
+    setupTimelineCardDrag();
+    
+    function setupTimelineCardDrag() {
+        DOM.timeline.addEventListener('dragstart', handleDragStart);
+        DOM.timeline.addEventListener('dragend', handleDragEnd);
+    }
 }
 
 /**
@@ -156,6 +162,7 @@ function createEventCard(event, isCurrentCard = false) {
     const card = document.createElement('div');
     card.className = 'card';
     card.setAttribute('role', 'listitem');
+    card.draggable = true; // Make all cards draggable
     card.innerHTML = `
         <div class="card-front">
             <div class="card-title">${event.name}</div>
@@ -196,9 +203,9 @@ function flipCard(card) {
  * @param {DragEvent} e - The drag event
  */
 function handleDragStart(e) {
-    if (e.type === 'touchstart') return; // Ignore touch events here
-    e.dataTransfer.setData('text/plain', e.target.id);
-    setTimeout(() => (DOM.currentCard.style.opacity = '0.5'), 0);
+    if (e.type === 'touchstart') return;
+    e.dataTransfer.setData('text/plain', e.target.id || 'timeline-card');
+    setTimeout(() => (e.target.style.opacity = '0.5'), 0);
 }
 
 /**
@@ -252,28 +259,50 @@ function handleDragLeave() {
  */
 function handleDrop(e) {
     e.preventDefault();
-    const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'current-card';
+    clearInterval(scrollInterval);
+    const id = e.dataTransfer ? e.dataTransfer.getData('text') : 'timeline-card';
+    let draggedCard;
+    
     if (id === 'current-card') {
         const currentEvent = events.find(event => event.name === DOM.currentCard.querySelector('.card-title').textContent);
-        const newCard = createEventCard(currentEvent);
-        const afterElement = getDragAfterElement(DOM.timeline, e.clientX);
-
-        if (afterElement) {
-            DOM.timeline.insertBefore(newCard, afterElement);
-        } else {
-            DOM.timeline.appendChild(newCard);
-        }
-
-        const isCorrect = validateCardPlacement(newCard);
-        if (isCorrect) {
-            newCard.querySelector('.card-year').style.display = 'block';
-            updateGameState(true);
-        } else {
-            DOM.timeline.removeChild(newCard);
-            updateGameState(false);
-        }
-        resetCurrentCard();
+        draggedCard = createEventCard(currentEvent);
+    } else {
+        draggedCard = e.target.closest('.card');
+        if (!draggedCard) return;
+        DOM.timeline.removeChild(draggedCard);
     }
+
+    const afterElement = getDragAfterElement(DOM.timeline, e.clientX);
+
+    if (afterElement) {
+        DOM.timeline.insertBefore(draggedCard, afterElement);
+    } else {
+        DOM.timeline.appendChild(draggedCard);
+    }
+
+    const isCorrect = validateCardPlacement(draggedCard);
+    if (isCorrect) {
+        draggedCard.querySelector('.card-year').style.display = 'block';
+        if (id === 'current-card') {
+            updateGameState(true);
+            resetCurrentCard();
+        }
+    } else {
+        if (id === 'current-card') {
+            DOM.timeline.removeChild(draggedCard);
+            updateGameState(false);
+        } else {
+            // Move the card back to its original position
+            const cards = Array.from(DOM.timeline.querySelectorAll('.card'));
+            const originalIndex = cards.findIndex(card => card.querySelector('.card-title').textContent === draggedCard.querySelector('.card-title').textContent);
+            if (originalIndex !== -1) {
+                DOM.timeline.insertBefore(draggedCard, cards[originalIndex]);
+            } else {
+                DOM.timeline.appendChild(draggedCard);
+            }
+        }
+    }
+
     DOM.placementIndicator.style.display = 'none';
     resetCardPositions();
 }
@@ -340,7 +369,7 @@ function validateCardPlacement(newCard) {
 
     if (newCardIndex === 0) {
         const nextCard = cards[1];
-        return nextCard ? newCardYear <= parseInt(nextCard.querySelector('.card-year').textContent) : true;
+        return !nextCard || newCardYear <= parseInt(nextCard.querySelector('.card-year').textContent);
     } else if (newCardIndex === cards.length - 1) {
         const prevCard = cards[cards.length - 2];
         return newCardYear >= parseInt(prevCard.querySelector('.card-year').textContent);
