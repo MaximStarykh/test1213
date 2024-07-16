@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Enhanced Timeline Card Game</title>
-    <!-- Link to the external CSS file -->
-    <link rel="stylesheet" href="styles.css">
+    <title> Timeline Card Game</title>
 </head>
 <body>
     <div id="game-container">
-        <!-- Game information display -->
         <div id="game-info" aria-live="polite">
             <div>
                 <span class="icon" aria-hidden="true">🏆</span>
@@ -25,13 +23,9 @@
                 <span class="visually-hidden">Progress:</span>
             </div>
         </div>
-
-        <!-- Timeline where cards will be placed -->
         <div id="timeline" role="list" aria-label="Timeline of events">
             <div class="placement-indicator" aria-hidden="true"></div>
         </div>
-
-        <!-- Current card to be placed on the timeline -->
         <div id="current-card" class="card" draggable="true" role="button" tabindex="0">
             <div class="card-inner">
                 <div class="card-front">
@@ -44,15 +38,9 @@
                 </div>
             </div>
         </div>
-
-        <!-- Button to draw a new card -->
         <button id="draw-card" aria-label="Draw a new card">Draw Card</button>
-
-        <!-- Feedback display for correct/incorrect placements -->
         <div id="feedback" aria-live="assertive"></div>
     </div>
-
-    <!-- Game end modal -->
     <div id="game-end-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-content">
             <h2 id="modal-title">Game Over</h2>
@@ -60,8 +48,6 @@
             <button id="restart-game">Restart Game</button>
         </div>
     </div>
-
-    <!-- Link to the external JavaScript file -->
     <script src="script.js"></script>
 </body>
 </html>

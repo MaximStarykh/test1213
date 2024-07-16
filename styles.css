@@ -1,5 +1,5 @@
-/* CSS Custom Properties for easy theming and accessibility */
-:root {
+ /* CSS Custom Properties for easy theming and accessibility */
+ :root {
     --primary-color: #ffffff;
     --secondary-color: #4CAF50;
     --text-color: #333333;
@@ -55,7 +55,7 @@ body {
     box-shadow: var(--card-shadow);
 }
 
-#game-info > div {
+#game-info>div {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -91,6 +91,10 @@ body {
     width: 99%;
 }
 
+#timeline:only-child {
+    justify-content: center;
+}
+
 /* Enhanced Card Styles */
 .card {
     flex-shrink: 0;
@@ -105,6 +109,7 @@ body {
     perspective: 1000px;
 }
 
+
 .card-inner {
     position: relative;
     width: 100%;
@@ -114,11 +119,13 @@ body {
     transform-style: preserve-3d;
 }
 
+
 .card.flipped {
     transform: rotateY(180deg);
 }
 
-.card-front, .card-back {
+.card-front,
+.card-back {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -133,11 +140,25 @@ body {
     background-color: var(--card-color);
 }
 
+.card-front {
+    background-color: var(--card-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+}
+
 .card-back {
     background-color: var(--secondary-color);
     color: white;
     transform: rotateY(180deg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
+
 
 .card-title {
     font-size: 1rem;
@@ -151,6 +172,7 @@ body {
     white-space: normal;
     line-height: 1.2;
     max-height: 3.6em;
+    /* Allows for up to 3 lines */
     overflow: hidden;
 }
 
@@ -168,6 +190,7 @@ body {
     margin-bottom: 5px;
     color: #4CAF50;
     margin-top: auto;
+
 }
 
 .card-notice {
@@ -184,6 +207,11 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+.card:active {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Current Card Styles */
@@ -298,15 +326,31 @@ body {
 
 /* Keyframe Animations */
 @keyframes pulseGreen {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 @keyframes pulseRed {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 /* Improved Media Queries for Responsiveness */
@@ -354,6 +398,8 @@ body {
         font-size: 1rem;
         width: 150px;
     }
+
+
 }
 
 /* Accessibility Improvements */
