@@ -6,6 +6,8 @@ let gameState = {
     totalCards: 10,
     availableEvents: []
 };
+let scrollInterval = null;
+const SCROLL_SPEED = 5; // Adjust this value to change scroll speed
 
 // DOM Elements
 const DOM = {
@@ -94,6 +96,12 @@ function setupTimelineScrolling() {
         const walk = (x - startX) * 2;
         DOM.timeline.scrollLeft = scrollLeft - walk;
     });
+}
+
+function startScrolling(direction) {
+    scrollInterval = setInterval(() => {
+        DOM.timeline.scrollLeft += direction * SCROLL_SPEED;
+    }, 16); // ~60fps
 }
 
 /**
@@ -187,10 +195,9 @@ function flipCard(card) {
  * Handles the start of a drag operation
  * @param {DragEvent} e - The drag event
  */
-function handleDragStart(e) {
-    if (e.type === 'touchstart') return; // Ignore touch events here
-    e.dataTransfer.setData('text/plain', e.target.id);
-    setTimeout(() => (DOM.currentCard.style.opacity = '0.5'), 0);
+function handleDragLeave() {
+    DOM.placementIndicator.style.display = 'none';
+    clearInterval(scrollInterval); // Clear the scroll interval when leaving the timeline
 }
 
 /**
@@ -200,7 +207,9 @@ function handleDragEnd() {
     DOM.currentCard.style.opacity = '1';
     DOM.placementIndicator.style.display = 'none';
     resetCardPositions();
+    clearInterval(scrollInterval); // Clear the scroll interval when dragging ends
 }
+
 
 /**
  * Handles the drag over event
@@ -211,10 +220,12 @@ function handleDragOver(e) {
     const rect = DOM.timeline.getBoundingClientRect();
     const scrollThreshold = 100;
 
+    clearInterval(scrollInterval); // Clear any existing scroll interval
+
     if (e.clientX - rect.left < scrollThreshold) {
-        autoScroll(DOM.timeline, -1);
+        startScrolling(-1);
     } else if (rect.right - e.clientX < scrollThreshold) {
-        autoScroll(DOM.timeline, 1);
+        startScrolling(1);
     }
 
     const afterElement = getDragAfterElement(DOM.timeline, e.clientX + DOM.timeline.scrollLeft);
