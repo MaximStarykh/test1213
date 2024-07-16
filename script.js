@@ -49,6 +49,7 @@ function initializeGame() {
     updateGameInfo();
     resetCurrentCard();
     drawCardButton.disabled = false;
+    setupAutoScroll();
     implementTouchDragDrop();
 }
 
@@ -141,7 +142,16 @@ function handleDragEnd() {
 // Handle drag over event
 function handleDragOver(e) {
     e.preventDefault();
-    const afterElement = getDragAfterElement(timeline, e.clientX);
+    const timelineRect = timeline.getBoundingClientRect();
+    const scrollThreshold = 100;
+
+    if (e.clientX - timelineRect.left < scrollThreshold) {
+        timeline.scrollLeft -= 10;
+    } else if (timelineRect.right - e.clientX < scrollThreshold) {
+        timeline.scrollLeft += 10;
+    }
+
+    const afterElement = getDragAfterElement(timeline, e.clientX + timeline.scrollLeft);
     updateCardPositions(afterElement);
     placementIndicator.style.display = 'block';
     if (afterElement) {
@@ -423,7 +433,36 @@ timeline.addEventListener('dragleave', handleDragLeave);
 timeline.addEventListener('drop', handleDrop);
 restartGameButton.addEventListener('click', restartGame);
 
+function setupAutoScroll() {
+    const timeline = document.getElementById('timeline');
+    const scrollSpeed = 5;
+    let scrollInterval;
 
+    function startScrolling(direction) {
+        scrollInterval = setInterval(() => {
+            timeline.scrollLeft += direction * scrollSpeed;
+        }, 50);
+    }
+
+    function stopScrolling() {
+        clearInterval(scrollInterval);
+    }
+
+    timeline.addEventListener('mousemove', (e) => {
+        const rect = timeline.getBoundingClientRect();
+        const scrollThreshold = 100; // pásmo pre spustenie posúvania
+
+        if (e.clientX - rect.left < scrollThreshold) {
+            startScrolling(-1); // posun doľava
+        } else if (rect.right - e.clientX < scrollThreshold) {
+            startScrolling(1); // posun doprava
+        } else {
+            stopScrolling();
+        }
+    });
+
+    timeline.addEventListener('mouseleave', stopScrolling);
+}
 
 // Initialize the game
 initializeGame();
