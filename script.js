@@ -722,6 +722,7 @@ function updateLayout() {
         }, { offset: Number.NEGATIVE_INFINITY }).element;
       }
   
+  
     function handleTouchEnd(e) {
       if (!isDragging) return;
       isDragging = false;
@@ -780,6 +781,28 @@ function updateLayout() {
       alert(message);
     }
   }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+  
+  const debouncedUpdateLayout = debounce(updateLayout, 250);
+  window.addEventListener('resize', debouncedUpdateLayout);
+  
+  // Event delegation example
+  timeline.addEventListener('click', (e) => {
+    if (e.target.closest('.card')) {
+      flipCard(e.target.closest('.card'));
+    }
+  });
 
   // Game events data
   const events = [
