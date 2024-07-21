@@ -1,426 +1,178 @@
- /* CSS Custom Properties for easy theming and accessibility */
- :root {
-    --primary-color: #ffffff;
-    --secondary-color: #4CAF50;
-    --text-color: #333333;
-    --card-color: #ffffff;
-    --incorrect-color: #F44336;
-    --background-gradient: linear-gradient(to right, var(--primary-color), #E8F5E9);
-    --timeline-gradient: linear-gradient(135deg, #E8F5E9, #81C784);
-    --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    --button-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-/* Global Reset and Base Styles */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
-
 body {
-    background: var(--background-gradient);
-    color: var(--text-color);
-    font-family: 'Roboto', Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
+    background-color: #2c3e50;
+    color: #ecf0f1;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    overflow-x: hidden;
-    line-height: 1.6;
+    height: 100vh;
+    overflow: hidden;
 }
-
-/* Improved Game Container Layout */
 #game-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    max-width: 100%;
-    width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
+    height: 100%;
 }
-
-/* Enhanced Game Info Section */
 #game-info {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    align-items: center;
-    font-size: 1.2rem;
-    color: var(--text-color);
-    margin-bottom: 20px;
-    padding: 15px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 10px;
-    box-shadow: var(--card-shadow);
-}
-
-#game-info>div {
+    background-color: #34495e;
+    padding: 10px;
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    text-align: center;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
-
-#game-info .icon {
-    font-size: 1.8em;
-    margin-bottom: 5px;
-}
-
-#lives {
-    display: flex;
-    gap: 5px;
-}
-
-/* Improved Timeline Section */
 #timeline {
     flex-grow: 1;
     display: flex;
     align-items: center;
     overflow-x: auto;
     padding: 20px;
-    background: var(--timeline-gradient);
-    border-radius: 10px;
+    background: linear-gradient(to bottom, #3498db, #2980b9);
     position: relative;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
-    margin-bottom: 20px;
-    width: 100%;
-    scroll-behavior: smooth;
 }
-
-#timeline:only-child {
-    justify-content: center;
-}
-
-/* Enhanced Card Styles */
-.card {
-    flex-shrink: 0;
-    scroll-snap-align: center;
-    width: 180px;
-    height: 250px;
-    margin: 0 10px;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-    position: relative;
-    cursor: pointer;
-    perspective: 1000px;
-}
-
-
-.card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-}
-
-
-.card.flipped {
-    transform: rotateY(180deg);
-}
-
-.card-front,
-.card-back {
+#timeline::after {
+    content: '';
     position: absolute;
-    width: 100%;
-    height: 100%;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #ecf0f1;
+    z-index: 1;
+}
+.card {
+    width: 150px;
+    height: 200px;
+    background-color: #ecf0f1;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 15px;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: var(--card-color);
+    padding: 10px;
+    margin: 0 10px;
+    transition: transform 0.3s ease, margin 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
 }
-
-.card-front {
-    background-color: var(--card-color);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
+.card:active {
+    transform: scale(1.05);
+}
+.card-content {
     text-align: center;
+    color: #2c3e50;
 }
-
-.card-back {
-    background-color: var(--secondary-color);
-    color: white;
-    transform: rotateY(180deg);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-
 .card-title {
     font-size: 1rem;
     font-weight: bold;
-    text-align: center;
-    margin-top: 5px;
-    max-width: 100%;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    hyphens: auto;
-    white-space: normal;
-    line-height: 1.2;
-    max-height: 3.6em;
-    /* Allows for up to 3 lines */
-    overflow: hidden;
+    margin-bottom: 5px;
 }
-
-.card-emoji {
-    font-size: 4rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-grow: 1;
-}
-
 .card-year {
     font-size: 1.2rem;
     font-weight: bold;
-    color: #4CAF50;
-    position: absolute;
-    bottom: 15px;
-    left: 0;
-    right: 0;
-    text-align: center;
+    color: #e74c3c;
 }
-
-.card-notice {
-    font-size: 0.9rem;
-    line-height: 1.4;
-    text-align: center;
+.card-back {
+    background-color: #3498db;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    overflow-y: auto;
-    white-space: normal;
-    word-wrap: break-word;
-    padding: 10px;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
+    font-size: 2rem;
+    color: #ecf0f1;
+    transform: rotateY(180deg);
+    backface-visibility: hidden;
+    transition: transform 0.6s;
 }
-
-.card:active {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+.card.flipped .card-back {
+    transform: rotateY(0deg);
 }
-
-/* Current Card Styles */
+.card.flipped .card-content {
+    transform: rotateY(180deg);
+}
 #current-card {
     align-self: center;
     margin-bottom: 20px;
     cursor: grab;
 }
-
 #current-card:active {
     cursor: grabbing;
 }
-
-/* Improved Draw Card Button Styles */
 #draw-card {
-    background-color: var(--secondary-color);
-    color: var(--primary-color);
+    background-color: #e74c3c;
+    color: white;
     border: none;
-    padding: 15px 30px;
+    padding: 15px;
     font-size: 1.2rem;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s;
-    margin: 15px auto;
-    border-radius: 25px;
-    box-shadow: var(--button-shadow);
-    display: block;
-    width: 200px;
+    transition: background-color 0.3s;
+    margin: 10px;
 }
-
-#draw-card:hover {
-    background-color: #45a049;
-}
-
-#draw-card:active {
-    transform: scale(0.98);
-}
-
 #draw-card:disabled {
-    background-color: #bdc3c7;
-    cursor: not-allowed;
+    background-color: #95a5a6;
 }
-
-/* Card Animation Classes */
+#draw-card:active {
+    background-color: #c0392b;
+}
+.placement-indicator {
+    width: 5px;
+    height: 150px;
+    background-color: #27ae60;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: none;
+}
 .card.sliding-left {
-    margin-right: 95px;
+    margin-right: 80px;
 }
-
 .card.sliding-right {
-    margin-left: 95px;
+    margin-left: 80px;
 }
-
 .card.correct {
-    box-shadow: 0 0 20px var(--secondary-color);
+    box-shadow: 0 0 15px #2ecc71;
     animation: pulseGreen 0.5s;
 }
-
 .card.incorrect {
-    box-shadow: 0 0 20px var(--incorrect-color);
+    box-shadow: 0 0 15px #e74c3c;
     animation: pulseRed 0.5s;
 }
-
-/* Improved Feedback Styles */
+@keyframes pulseGreen {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+@keyframes pulseRed {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
 #feedback {
     position: fixed;
-    right: 20px;
     top: 20px;
-    font-size: 2rem;
-    z-index: 1000;
-    background-color: var(--card-color);
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    box-shadow: var(--card-shadow);
-}
-
-/* Game End Modal */
-#game-end-modal {
-    display: none;
-    position: fixed;
-    z-index: 1001;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
-.modal-content {
-    background-color: var(--card-color);
-    margin: 15% auto;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: var(--card-shadow);
-    width: 80%;
-    max-width: 400px;
-    text-align: center;
-}
-
-#restart-game {
-    margin-top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     padding: 10px 20px;
-    background-color: var(--secondary-color);
-    color: var(--primary-color);
-    border: none;
     border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
+    font-weight: bold;
+    display: none;
 }
-
-/* Keyframe Animations */
-@keyframes pulseGreen {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.05);
-    }
-
-    100% {
-        transform: scale(1);
-    }
+#feedback.correct {
+    background-color: #2ecc71;
+    color: white;
 }
-
-@keyframes pulseRed {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.05);
-    }
-
-    100% {
-        transform: scale(1);
-    }
-}
-
-/* Improved Media Queries for Responsiveness */
-@media (max-width: 768px) {
-    #game-info {
-        font-size: 0.9rem;
-        padding: 10px;
-    }
-
-    #game-info .icon {
-        font-size: 1.2em;
-    }
-
-    .card {
-        width: 150px;
-        height: 200px;
-    }
-
-    .card-title {
-        font-size: 0.9rem;
-    }
-
-    .card-year {
-        font-size: 1rem;
-    }
-
-    .card-emoji {
-        font-size: 3rem;
-    }
-
-    .card-notice {
-        font-size: 0.8rem;
-    }
-
-    #timeline {
-        padding: 10px;
-    }
-
-    #current-card {
-        margin-bottom: 10px;
-    }
-
-    #draw-card {
-        padding: 10px 20px;
-        font-size: 1rem;
-        width: 150px;
-    }
-
-
-}
-
-/* Accessibility Improvements */
-.visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-/* Focus styles for keyboard navigation */
-.card:focus,
-#draw-card:focus,
-#restart-game:focus {
-    outline: 3px solid #4a90e2;
-    outline-offset: 2px;
+#feedback.incorrect {
+    background-color: #e74c3c;
+    color: white;
 }
