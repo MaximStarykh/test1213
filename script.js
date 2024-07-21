@@ -224,17 +224,6 @@ function handleDragEnd() {
  */
 function handleDragOver(e) {
     e.preventDefault();
-    const rect = DOM.timeline.getBoundingClientRect();
-    const scrollThreshold = 100;
-
-    clearInterval(scrollInterval); // Clear any existing scroll interval
-
-    if (e.clientX - rect.left < scrollThreshold) {
-        startScrolling(-1);
-    } else if (rect.right - e.clientX < scrollThreshold) {
-        startScrolling(1);
-    }
-
     const afterElement = getDragAfterElement(DOM.timeline, e.clientX + DOM.timeline.scrollLeft);
     updateCardPositions(afterElement);
     DOM.placementIndicator.style.display = 'block';
